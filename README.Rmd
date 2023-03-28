@@ -38,7 +38,7 @@ The repository (`documents/` folder) contains the paper and supplementary materi
 
 The project is organized as follows:
 
-- `R`: contains the simulation and utility functions used in the paper and supplementary materials
+- `R`: contains the simulation and utility functions used in the paper and the supplementary materials
 - `documents`: contains the `.Rmd` files to reproduce the paper and supplementary materials manuscripts
 - `scripts`: contains the script used to produce complex objects and figures
   - `scripts\r-img.R`: create the paper figures. Figures that are not created in this script using `ggplot2` are created with the open-source program [*Inkscape*](https://inkscape.org/) and contained in the `../img/` folders.

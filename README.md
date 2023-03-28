@@ -20,8 +20,8 @@ project can also be found on the Open Science Framework
 Functions used in the paper and supplementary materials are documented
 and can be used opening the `simulating-meta-analysis.Rproj` file and
 using the `devtools::load_all()` function (this requires the `devtools`
-package installed). Then each function will be available as a standard R
-package.
+package installed). Then each function will be available as using a
+standard R package.
 
 ## Documents
 
@@ -39,7 +39,7 @@ package.
 The project is organized as follows:
 
 - `R`: contains the simulation and utility functions used in the paper
-  and supplementary materials
+  and the supplementary materials
 - `documents`: contains the `.Rmd` files to reproduce the paper and
   supplementary materials manuscripts
 - `scripts`: contains the script used to produce complex objects and
