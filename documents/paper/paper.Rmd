@@ -290,12 +290,12 @@ sim |>
 ```{r notation-tab, echo=FALSE, result = "asis"}
 notation_table <- tibble::tribble(
      ~`Equation`,     ~`Code`,                                               ~`Description`,
-       "$\\theta_f$",   "theta\\_f",                  "Fixed-effects model real effect size",
-       "$\\theta_r$",   "theta\\_r",                 "Random-effects model real effect size",
-         "$\\tau^2$",    "tau2",                            "Effect size heterogeneity",
+       "$\\theta$",   "theta",                  "Fixed-effects model real effect size",
+       "$\\mu$",      "mu",                        "Random-effects model real effect size",
+        "$\\tau^2$",    "tau2",                            "Effect size heterogeneity",
        "$\\tau^2_r$",   "tau2r",                   "Residual effect size heterogeneity",
   "$\\bar y_{T, C}$",        "",               "Mean of the experimental/control group",
-      "$s^2_{T, C}$",        "", "Standard deviation of the experimental/control group",
+      "$s_{T, C}$",        "", "Standard deviation of the experimental/control group",
         "$n_{T, C}$",  "nt, nc",        "Sample size of the experimental/control group",
              "$d_i$",      "yi",                                 "Observed effect size",
       "$\\sigma^2_i$",      "vi",                          "Observed sampling variance",
