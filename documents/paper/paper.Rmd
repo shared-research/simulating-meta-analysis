@@ -129,20 +129,20 @@ A meta-analysis is an essential tool for combining knowledge from multiple studi
 
 The meta-analysis is a statistical procedure to combine multiple studies (i.e., *primary studies*) into a single statistical analysis [@Borenstein2009-mo]. The idea is that combining numerous preliminary studies improve the estimation of a particular phenomenon more efficiently compared to conducting a single study. In statistical terms, the concept of the meta-analysis is to switch the statistical unit from the single participant or observation (i.e., *level 1*) to the study (i.e., *level 2*). Given that some studies will give more information because their estimation variability is smaller (e.g., higher sample size), the meta-analysis combines the studies assigning more weight as a function of the precision (i.e., the inverse of the variance).
 
-As an example that will be used throughout the paper, we consider the efficacy of memory training in improving memory performance during a cognitive task. The typical primary study will collect data from a group of participants receiving the memory training (*experimental group*) and another group receiving a control treatment (*control group*). The focus of the meta-analysis is collecting multiple studies with similar aims and methods and estimating the average effect of memory training. Despite differences in the type of cognitive task or experimental setup, each primary study collects an *experimental group* ($n_{C}$) and *control group* ($n_{C}$) and computes the average performance (*experimental group* ${\bar y}_{T}$ and *control group* ${\bar y}_{C}$) and standard deviations (*experimental group* $s_{T}$ and *control group*
+As an example that will be used throughout the paper, we consider the efficacy of memory training in improving memory performance during a cognitive task. The typical primary study will collect data from a group of participants receiving the memory training (*experimental group*) and another group receiving a control treatment (*control group*). The focus of the meta-analysis is collecting multiple studies with similar aims and methods and estimating the average effect of memory training. Despite differences in the type of cognitive task or experimental setup, each primary study collects an *experimental group* ($n_{C}$) and *control group* ($n_{C}$) and computes the average performance (*experimental group* $\overline T$ and *control group* $\overline C$) and standard deviations (*experimental group* $s_{T}$ and *control group*
 $s_{C}$).
 
 ### Effect size and variance
 
-The first step of a meta-analysis is to standardize information from each included study to convert each effect into a standard measure. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures [see @Lakens2013-eq for an overview], such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's $d$ [@Cohen1988-ad] or the Pearson correlation coefficient $\rho$ which could be calculated using the associated sample estimator *r* are commonly used to compare heterogeneous outcome variables. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing. In practice, studies often use heterogeneous measures, therefore requiring standardized measures.
+The first step of a meta-analysis is to extract information from included studies. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures [see @Lakens2013-eq for an overview], such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's $d$ [@Cohen1988-ad] or the Pearson correlation coefficient $\rho$ which could be calculated using the associated sample estimator *r* are commonly used to compare heterogeneous outcome variables. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing using (UMD, unstandardized mean difference).
 
 As reported in the previous section, beyond the effect size of each study, we need to assign a weight according to the precision. For this reason, we need to calculate the sampling variability of the effect size or the raw measure that will represent the estimation precision. Each raw or standardized effect size measure (e.g., raw mean difference, Cohen's $d$, and Pearson's correlation) has a different formula to calculate the sampling variability. The idea is to choose the appropriate measure considering the study design (e.g., between vs. within-subjects) and available information and find the proper formula to compute the sampling variability. In addition, there are formulas and approaches to convert from one effect size measure to another [@Borenstein2009-mo; @Lipsey2001-vp; @Lakens2013-eq].^[See also the blog post by James Pustejovsky ([link](https://www.jepusto.com/alternative-formulas-for-the-smd/)) for a general method to compute the sampling variability for standardized mean difference measures.] Usually, the effect size sampling variability depends mainly on the sample size that determines the weight assigned during the meta-analytic estimation.
 
 ### Fixed vs random-effects model
 
-The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can divide meta-analysis models into two categories: the *fixed-effects* and the *random-effects model*. If we imagine combining multiple studies replicating the same experiment, we assume the real treatment effect $\theta_{f}$ is *fixed,* and each study is a more or less precise estimation of this parameter. This is an essential and often inappropriate assumption because it ignores that study-level characteristics may impact the actual treatment effect.
+The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can divide meta-analysis models into two categories: the *fixed-effects* and the *random-effects model*. If we imagine combining multiple studies replicating the same experiment, we assume the real treatment effect $\theta$ is *fixed,* and each study is a more or less precise estimation of this parameter. This is an essential and often inappropriate assumption because it ignores that study-level characteristics may impact the actual treatment effect.
 
-Suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In that case, the assumption of the *fixed-effects model* is no longer plausible. There is no unique real effect but a distribution of effects with mean $\theta_{r}$ and variance $\tau^{2}$. The mean is the *average* effect, and the variance is the heterogeneity of the phenomenon. The *random-effects model* will estimate the mean ($\theta_{r}$) and the heterogeneity $\tau^{2}$ will help generalize to the population of effects beyond the pool of included studies.
+Suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In that case, the assumption of the *fixed-effects model* is no longer plausible. There is no unique real effect but a distribution of effects with mean $\mu_{\theta}$ and variance $\tau^{2}$. The mean is the *average* effect, and the variance is the heterogeneity of the phenomenon. The *random-effects model* will estimate the mean ($\mu_{\theta}$) and the heterogeneity $\tau^{2}$ will help generalize to the population of effects beyond the pool of included studies.
 
 Most importantly, the parameters estimated with the *fixed* and *random-effects* do not represent the same quantity. The *random-effects model* estimates the *average* effect across a distribution of true effects, while the *fixed-effects model* estimates a single true effect. Figure 1 depicts the idea of the fixed vs. random-effects model. The *fixed-effects model* can be considered a particular type of *random-effects model* where $\tau^{2} = 0$ thus, the average effect is also the unique true effect.
 
@@ -216,34 +216,30 @@ library(metafor) # for meta-analysis models fitting
 seed <- 2023 # general seed for all simulations
 ```
 
-Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the *two-level*, *fixed,* and *random-effects model*s. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. Equation \@ref(eq:datagen) formalizes the assumption about generating participants' data within a single study. The two groups (*experimental* $y_{T}$ and *control* $y_{C}$) are generated from normal distributions with $\mu = 0$ for the control group and $\mu = \theta$ (where $\theta$ is the effect size) for the experimental group. Both groups are assumed to be sampled from populations with homogeneous variances $\sigma^{2} = 1$.
+Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the *two-level*, *fixed,* and *random-effects* models. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. There are different simulation approaches to meta-analysis concerning how to generate study-level or participant-level data. In simulation studies where the purpose is not evaluating effect size estimators, it is convenient to simulate unstandardized effect size measures (e.g., UMD). Firstly the estimator is unbiased thus not requiring small sample correction [e.g., @Hedges1989-ip; @Hedges1981-za]. Then the effect size and the sampling variance are independent. Similar to the simulation approach by Viechtbauer [@Viechtbauer2005-yh; @Viechtbauer2007-tq] the *experimental* group ($T$) and *control* groups $C$ are sampled from normal distributions respectively $T_i \sim \mathcal{N}(\Delta, 1)$ and $C_i \sim \mathcal{N}(0, 1)$ where $\Delta$ is the unstandardized mean difference (UMD). The UMD and the sampling variance are calculated using Equations \@ref(eq:effsize) and \@ref(eq:effsizevar) where $y$ is the sample estimator of $\Delta$.
 
 \begin{align}
 \begin{gathered}
-y_{Ti} \sim \mathcal{N}(\theta, 1) \\
-y_{Ci} \sim \mathcal{N}(0, 1)
-(\#eq:datagen)
+y_i = \overline{T} - \overline{C}
+(\#eq:effsize)
 \end{gathered}
 \end{align}
 
-The true Standardized Mean Difference can be estimated using Cohen's $d$ as reported in Equation \@ref(eq:effsize). The difference between the two means is divided by the pooled standard deviation of the two groups. It is common to apply a small-sample correction version of this effect size called Hedges' $g$ [@Hedges1981-za]
-
 \begin{align}
 \begin{gathered}
-d = \frac{\bar y_T - \bar y_C}{S_p} \\
-S_p = \sqrt{\frac{S^2_{y_T}(n_{y_T} - 1) + S^2_{y_C}(n_{C} - 1)}{n_{T} + n_{C} - 2}} \\
-\sigma^2_d = \frac{n_{T} + n_{C}}{n_{T}n_{C}} + \frac{d^2}{2(n_{T} + n_{C} - 2)}
-(\#eq:effsize)
+\sigma_{\epsilon_i}^{2} = \frac{s^2_T}{n_T} + \frac{s^2_C}{n_C}
+(\#eq:effsizevar)
 \end{gathered}
 \end{align}
 
 We can use the following algorithm implemented in the `sim_study()` function to simulate a single study. Before using the `sim_study()`
 function, we can create a data frame for the simulation using the `make_data()` function^[This function is a simple wrapper of `data.frame()` that given the number of studies and other variables create the data structure for the simulation.]. Table \@ref(tab:sim-data-example-tab) depicts an example of the `make_data()` output.
 
-1. Choose a $\theta$, $n_{T}$, and $n_{C}$ value.
-2. Simulate $n_{T}$ observations from a Gaussian distribution with $\mu = \theta$ and $\sigma^{2} = 1$ and $n_{T}$ observations from a Gaussian distribution with $\mu = 0$ and $\sigma^{2} = 1$. This way, the expected difference between groups will be $d$ and the variance is fixed at 1.
-3. Calculate the pooled standard deviation $S_{p}$ that is an estimation of the population standard deviation ($\sigma$) to standardize the mean difference.
-4. Calculate the observed effect size $d$ and the sampling variance $\sigma_{d}^{2}$.
+1. Choose a $\Delta$, $n_{T}$, and $n_{C}$ value.
+2. Simulate $n_{T}$ observations from a Gaussian distribution with $\mu = \Delta$ and $\sigma^{2} = 1$ and $n_{T}$ observations from a Gaussian distribution with $\mu = 0$ and $\sigma^{2} = 1$. This way, the expected difference between groups will be $\Delta$ and the variance is fixed at 1.
+3. Calculate the observed effect size $y$ and the sampling variance $\sigma_{\epsilon}^{2}$.
+
+The simulation approach can be easily extended calculating a standardized effect size measure [e.g., Cohens' $d$ @Cohen1988-ad] and the corresponding sampling variance. For example, after generating data for the two groups the mean difference can be standardized using the pooled standard deviation and applying the appropriate correction [e.g., @Hedges1989-ip; @Hedges1981-za].
 
 ```{r fun-sim-study, results='asis', echo=FALSE}
 print_fun(simfuns$make_data)
@@ -253,18 +249,18 @@ print_fun(simfuns$make_data)
 print_fun(c(simfuns$sim_study, simfuns$sim_studies))
 ```
 
-The `theta` is the true effect size, `nc` and `nt` are the sample size for the control and experimental group, `aggregate` controls if returning the effect size and the corresponding variance or the participant-level data, and `hedges` specify whether applying the correction. We can generate a single study with the desired parameters with this function. A suggestion for each simulation step is to generate a large $n$ to reduce the sampling error and check the recovery of simulated parameters. This is a general strategy that can be applied to every simulation. The `sim_studies()` function will iterate through variables in the `...` argument creating the meta-analysis data frame. The `mapply()` function is clearly explained in the supplementary materials.
+The `es` is the true effect size ($\mu_{\theta}$ for the random-effects model and $\theta$ for the fixed-effect model), `nc` and `nt` are the sample size for the control and experimental group, `aggregate` controls if returning the effect size and the corresponding variance or the participant-level data. We can generate a single study with the desired parameters with this function. A suggestion for each simulation step is to generate a large $n$ to reduce the sampling error and check the recovery of simulated parameters. This is a general strategy that can be applied to every simulation. The `sim_studies()` function will iterate through variables in the `...` argument creating the meta-analysis data frame. The `mapply()` function is clearly explained in the supplementary materials.
 
 The following code simulates a single study with $n = 10000$ and check the estimated mean and standard deviation.
 
 ```{r sim-single-study, eval = FALSE}
 set.seed(seed)
-sim_study(theta = 0.3, nc = 10000, nt = 10000, aggregate = FALSE)
+sim_study(es = 0.3, nc = 10000, nt = 10000, aggregate = FALSE)
 ```
 
 ```{r sim-single-study-tab, echo = FALSE}
 set.seed(seed)
-sim <- sim_study(theta = 0.3, nc = 10000, nt = 10000, aggregate = FALSE) |> 
+sim <- sim_study(es = 0.3, nc = 10000, nt = 10000, aggregate = FALSE) |> 
   group_by(group) |> 
   summarise(mean = mean(y),
             sd = sd(y))
@@ -277,8 +273,8 @@ Using the `sim_study()` function multiple times (with the appropriate adjustment
 ```{r sim-data-example}
 k <- 30 # number of studies
 n <- 20 # number of participants per group, per study
-theta <- 0.3 # real effect size
-sim <- make_data(k = k, nt = n, nc = n, theta = theta)
+es <- 0.3 # real effect size
+sim <- make_data(k = k, nt = n, nc = n, es = es)
 ```
 
 ```{r sim-data-example-tab, echo = FALSE}
@@ -298,7 +294,7 @@ notation_table <- tibble::tribble(
       "$s_{T, C}$",        "", "Standard deviation of the experimental/control group",
         "$n_{T, C}$",  "nt, nc",        "Sample size of the experimental/control group",
              "$d_i$",      "yi",                                 "Observed effect size",
-      "$\\sigma^2_i$",      "vi",                          "Observed sampling variance",
+      "$$\\sigma_{\\epsilon_i}^{2}$$",      "vi",                          "Observed sampling variance",
        "$\\theta_i$", "theta\\_i",              "Random effect for the study i",
         "$\\beta_0$",      "b0",                            "Meta-regression intercept",
          "$\\beta_1$",      "b1",                                "Meta-regression slope",
@@ -319,32 +315,36 @@ notation_table |>
 
 ## Fixed-effects model
 
-The most basic model to simulate is the *fixed-effects model* (FE). As reported in the previous sections, the *fixed-effects model* assumes the presence of a single true effect ($\theta_{f}$) and the observed variability is because each effect size is an imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies
-(i.e., the sample size). Equation \@ref(eq:fixed-effect-model) depicts the *fixed-effect* equation.
+The most basic model to simulate is the *fixed-effects model* (FE). As reported in the previous sections, the *fixed-effects model* assumes the presence of a single true effect ($\theta_{f}$) and the observed variability is because each effect size is an imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \@ref(eq:fixed-effect-model1) and \@ref(eq:fixed-effect-model2) depicts the *fixed-effects* model.
 
 \begin{align}
 \begin{gathered}
-d_i = \theta_f + \epsilon_i \\
-\epsilon_i \sim \mathcal{N}(0,\sigma^2_i)
-(\#eq:fixed-effect-model)
+y_i = \theta + \epsilon_i
+(\#eq:fixed-effect-model1)
 \end{gathered}
 \end{align}
 
-Each observed effect size ($d_{i}$) is composed of the real effect size $\theta_{f}$ plus an error term ($\epsilon_{i}$) that is sampled from a normal distribution with $\mu = 0$ and $\sigma^{2} = \sigma_{i}^{2}$ (i.e., the known sampling variance of the study $i$). As demonstrated in
-Equation \@ref(eq:effsize), the increase in sample size will decrease the sampling variability. An exact study will essentially have $\theta_{f}$ as the observed effect size. Since we are sampling participants' level data, the error component is already included in the `sim_study()` function. To simulate this model in R we can just call the `sim_study()` multiple times according to the number of desired studies ($k$). In addition, we simulate that each primary study will have a sample size of $n = 20$ for both groups. We will discuss later the appropriateness of this assumption.
+\begin{align}
+\begin{gathered}
+\epsilon_i \sim \mathcal{N}(0,\sigma_{\epsilon_i}^{2})
+(\#eq:fixed-effect-model2)
+\end{gathered}
+\end{align}
+
+Each observed effect size ($y_{i}$) is composed of the real effect size $\theta$ plus an error term ($\epsilon_{i}$) that is sampled from a normal distribution with $\mu = 0$ and $\sigma^{2} = \sigma_{\epsilon_i}^{2}$ (i.e., the known sampling variance of the study $i$). As demonstrated in Equation \@ref(eq:effsize), the increase in sample size will decrease the sampling variability. An exact study will essentially have $\theta$ as the observed effect size. Since we are sampling participants' level data, the error component is already included in the `sim_study()` function. To simulate this model in R we can just call the `sim_study()` multiple times according to the number of desired studies ($k$). In addition, we simulate that each primary study will have a sample size of $n = 20$ for both groups. We will discuss later the appropriateness of this assumption.
 
 ```{r sim-fixed-effect}
 set.seed(seed)
 k <- 30 # number of studies
 n <- 20 # number of participants per group, per study
-theta_f <- 0.3 # real effect size
+theta <- 0.3 # real effect size
 
-sim <- make_data(k = k, nt = n, nc = n, theta_f = theta_f)
-sim <- sim_studies(sim$theta_f, sim$nc, sim$nt, data = sim) # simulated data
+sim <- make_data(k = k, nt = n, nc = n, es = theta)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim) # simulated data
 res <- rma(yi = yi, vi = vi, method = "FE", data = sim)
 ```
 
-We are using the $\theta_{f}$ parameter to generate random data using the `sim_study()` function that will introduce the random error component $\epsilon_{i}$. Then we can fit the *fixed-effects* meta-analysis model with the `rma` function and `method = "FE"` of the `metafor` package. The parameter we are estimating is $\theta_{f}$ which is close to our simulation value (see Table \@ref(tab:res-fixed-effect)). Increasing the number of studies ($k$) and/or the number of participants in each study ($n$) will improve estimation reducing the standard error.
+We are using the $\theta$ parameter to generate random data using the `sim_study()` function that will introduce the random error component $\epsilon_{i}$. Then we can fit the *fixed-effects* meta-analysis model with the `rma` function and `method = "FE"` of the `metafor` package. The parameter we are estimating is $\theta$ which is close to our simulation value (see Table \@ref(tab:res-fixed-effect)). Increasing the number of studies ($k$) and/or the number of participants in each study ($n$) will improve estimation reducing the standard error.
 
 ```{r res-fixed-effect, echo = FALSE}
 res_tidy <- rma_tidy(res)
@@ -356,17 +356,17 @@ Increasing the sample size for each study will increase the estimation precision
 ```{r fixed-effect-high-low-precision, echo = FALSE, fig.asp=0.8, fig.cap=get_caption()}
 set.seed(seed)
 k <- 10 # number of studies
-theta_f <- 0.3 # real effect size
+theta <- 0.3 # real effect size
 n <- c(30, 500)
 
-sim <- make_data(k = k, theta_f = theta_f)
+sim <- make_data(k = k, es = theta)
 
 sim <- expand_grid(sim, nc = n)
 sim$nt <- sim$nc
 
-sim <- sim_studies(sim$theta_f, sim$nc, sim$nt, data = sim)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 
-sim <- escalc(yi = yi, vi = vi, data = sim)
+sim <- escalc(yi = yi, vi = vi, data = sim, measure = "MD")
 sim <- summary(sim)
 
 fit_lp <- rma(yi, vi, method = "FE", data = filter(sim, nt == 30 & nc == 30))
@@ -381,58 +381,70 @@ forest(fit_hp, main = "N = 500", xlim = c(-2, 3), alim = c(-1, 2))
 
 ## Random-effects model {#re-model}
 
-The *random-effects model* (RE) can be considered an extension of the *fixed-effects model*. The *fixed-effects model* assumes that the real effect is a single value. The random-effects model relaxes this assumption allowing $\theta_{f}$ (now $\theta_{r}$) to vary across studies. For example, the difference between groups we are simulating could be influenced by the type of experiment or the participants' age.
-Now $\theta_{r}$ is no longer a single value but a distribution of values. Due to the effect size being a distribution, we need two parameters $\mu$ and $\sigma^{2}$ to describe the phenomenon. The parameter $\theta_{r}$ average true effect is now interpreted as the average effect size across different true effect sizes and $\sigma^{2}$ usually known as $\tau^{2}$ is the effect size variability or heterogeneity. In practical terms, we now have two sources of variability: $\tau^{2}$, which express the real difference among effect sizes, and $\sigma_{i}^{2}$ which is the known sampling variance of each study as in the *fixed-effects model*. We can easily extend Equation \@ref(eq:fixed-effect-model) with Equation \@ref(eq:random-effect-model).
+The *random-effects model* (RE) can be considered an extension of the *fixed-effects model*. The *fixed-effects model* assumes that the real effect is a single value. The random-effects model relaxes this assumption allowing the true effect size to vary across studies. For example, the difference between groups we are simulating could be influenced by the type of experiment or the participants' age.
+Now $\theta$ is no longer a single value but a distribution of values. Due to the effect size being a distribution, we need to estimate both the mean and the variance. The parameter $\mu_{\theta}$ is mean of the distribution, interpreted as the average effect size across different true effect sizes and $\tau^{2}$ is the variance of the distribution interpreted as variability or heterogeneity of effect sizes. In practical terms, we now have two sources of variability: $\tau^{2}$, which express the real difference among effect sizes, and $\sigma_{i}^{2}$ which is the known sampling variance of each study as in the *fixed-effects model*. We can easily extend Equation \@ref(eq:fixed-effect-model1) with Equations \@ref(eq:random-effect-model1), \@ref(eq:random-effect-model2) and \@ref(eq:random-effect-model3).
 
 \begin{align}
 \begin{aligned}
-d_i = \theta_r + \theta_i + \epsilon_i \\
-\theta_i \sim \mathcal{N}(0, \tau^2) \\
-\epsilon_i \sim \mathcal{N}(0,\sigma^2_i)
-(\#eq:random-effect-model)
+y_i = \mu_{\theta} + \theta_i + \epsilon_i \\
+(\#eq:random-effect-model1)
 \end{aligned}
 \end{align}
 
-Compared to the *fixed-effects model* we need to generate another adjustment to the overall effect $\theta_{r}$ from a normal distribution with mean $\theta_{r}$ and variance $\tau^{2}$. The real effect size for the study $i$ will be $\theta_{r} + \theta_{i}$ where $\theta_{i}$ are the random-effects regulated by the $\tau^{2}$ parameter.
+\begin{align}
+\begin{aligned}
+\theta_i \sim \mathcal{N}(0,\tau^2)
+(\#eq:random-effect-model2)
+\end{aligned}
+\end{align}
+
+\begin{align}
+\begin{aligned}
+\epsilon_i \sim \mathcal{N}(0,\sigma_{\epsilon_i}^{2})
+(\#eq:random-effect-model3)
+\end{aligned}
+\end{align}
+
+Compared to the *fixed-effects model* we need to generate another adjustment to the overall effect $\mu_{\theta}$ from a normal distribution with mean 0 and variance $\tau^{2}$. The real effect size for the study $i$ will be $\mu_{\theta} + \theta_{i}$ where $\theta_{i}$ are the random-effects regulated by the $\tau^{2}$ parameter.
 
 ```{r sim-random-effect}
 set.seed(seed)
 k <- 30 # number of studies
 n <- 20 # number of participants per group, per study
-theta_r <- 0.3 # real effect size
+mu_theta <- 0.3 # real effect size
 tau2 <- 0.2 # the effect size heterogeneity
 
-sim <- make_data(k = k, nc = n, nt = n, theta_r = theta_r)
+sim <- make_data(k = k, nc = n, nt = n, mu_theta = mu_theta)
 
 # simulate the random-effects adjustment
 sim$theta_i <- rnorm(k, 0, sqrt(tau2))
 
 # adding the by-study adjustment to the average effect
-sim$theta_r_theta_i <- sim$theta_r + sim$theta_i 
+sim$es <- sim$mu_theta + sim$theta_i 
 
 # now we are using theta_r_theta_i and no longer theta_f
-sim <- sim_studies(sim$theta_r_theta_i, sim$nc, sim$nt, data = sim)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 res <- rma(yi = yi, vi = vi, method = "REML", data = sim)
 ```
 
-Then we can fit the *random-effects* meta-analysis model with the `rma` function and `method = "REML"`. Table \@ref(tab:res-random-effect) depicts the model results^[The `method = "REML"` is not the only method to estimate a random-effects model. See the `rma` documentation (https://wviechtb.github.io/metafor/reference/rma.uni.html#specifying-the-model) for an overview of other estimation methods] of the metafor package. We are now estimating two parameters: $\theta_{r}$ and $\tau^{2}$. As for the *fixed-effects model*, increasing the number of studies and/or the number of participants in each study will improve estimation reducing the standard error.
+Then we can fit the *random-effects* meta-analysis model with the `rma` function and `method = "REML"`. Table \@ref(tab:res-random-effect) depicts the model results^[The `method = "REML"` is not the only method to estimate a random-effects model. See the `rma` documentation (https://wviechtb.github.io/metafor/reference/rma.uni.html#specifying-the-model) for an overview of other estimation methods] of the metafor package. We are now estimating two parameters: $\mu_{\theta}$ and $\tau^{2}$. As for the *fixed-effects model*, increasing the number of studies and/or the number of participants in each study will improve estimation reducing the standard error.
 
 ```{r res-random-effect, echo = FALSE}
 res_tidy <- rma_tidy(res)
 rma_table(res_tidy$res, res_tidy$notes, caption = get_caption())
 ```
 
-An important aspect of the *random-effects model* is the interplay between the heterogeneity ($\tau^{2}$) and the sampling variability ($\sigma_{i}^{2}$). As the number of studies $k$ increases, the estimation of $\theta_{r}$ and $\tau^{2}$ becomes more precise. Additionally, as each study\'s sample size decreases, each $\theta_{i}$ will be estimated with higher precision but as long as $\tau^{2} \neq 0$
-there will be variability among effect sizes. In other words, increasing the sample size of each study or the number of studies will not affect the value of $\tau^{2}$ but only the estimation precision [see @Borenstein2009-mo, Chapter 16, Figure 16.6 for a clear explanation]. This can be easily demonstrated using the previous simulation, increasing each study\'s sample size. Figure \@ref(fig:random-effect-high-low-precision) depicts the same meta-analysis but with different precision in estimating the study $d_{i}$. Compared to Figure \@ref(fig:fixed-effect-high-low-precision), increasing the sample size of primary studies improves the estimation of each study without reducing the between-studies heterogeneity.
+An important aspect of the *random-effects model* is the interplay between the heterogeneity ($\tau^{2}$) and the sampling variability ($\sigma_{i}^{2}$). As the number of studies $k$ increases, the estimation of $\mu_{\theta}$ and $\tau^{2}$ becomes more precise. Additionally, as each study\'s sample size decreases, each $\theta_{i}$ will be estimated with higher precision but as long as $\tau^{2} \neq 0$
+there will be variability among effect sizes. In other words, increasing the sample size of each study or the number of studies will not affect the value of $\tau^{2}$ but only the estimation precision [see @Borenstein2009-mo, Chapter 16, Figure 16.6 for a clear explanation]. This can be easily demonstrated using the previous simulation, increasing each study\'s sample size. Figure \@ref(fig:random-effect-high-low-precision) depicts the same meta-analysis but with different precision in estimating the study $y_{i}$. Compared to Figure \@ref(fig:fixed-effect-high-low-precision), increasing the sample size of primary studies improves the estimation of each study without reducing the between-studies heterogeneity.
 
 ```{r random-effect-high-low-precision, echo = FALSE, fig.asp=0.8, fig.cap=get_caption()}
 set.seed(seed)
 k <- 10 # number of studies
-theta_r <- 0.3 # real effect size
+mu_theta <- 0.3 # real effect size
 tau2 <- 0.2
 n <- c(30, 500)
 
-sim <- make_data(k = k, theta_r = theta_r)
+sim <- make_data(k = k, mu_theta = mu_theta)
 
 sim <- expand_grid(sim, nc = n)
 sim$nt <- sim$nc
@@ -441,8 +453,8 @@ theta_i <- rnorm(k, 0, sqrt(tau2))
 
 sim$theta_i <- rep(theta_i, each = 2)
 
-sim$theta_r_theta_i <- sim$theta_r + sim$theta_i
-sim <- sim_studies(sim$theta_r_theta_i, sim$nc, sim$nt, data = sim)
+sim$es <- sim$mu_theta + sim$theta_i
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 
 fit_lp <- rma(yi, vi, method = "REML", data = filter(sim, nc == 30 & nt == 30))
 fit_hp <- rma(yi, vi, method = "REML", data = filter(sim, nc == 500 & nt == 500))
@@ -475,18 +487,18 @@ Given the interpretation of $I^{2}$ it is possible to simulate a meta-analysis f
 ```{r sim-random-effect-i2}
 set.seed(seed)
 k <- 30 # number of studies
-theta_r <- 0.3 # real effect size
+mu_theta <- 0.3 # real effect size
 n <- 30 # sample size per group, per study
 I2 <- 0.6 # desired I2 value
 
-v <- (n + n)/(n * n) + theta_r^2/(2 * (n + n - 2)) # typical within study variance
+v <- (n + n)/(n * n) + mu_theta^2/(2 * (n + n - 2)) # typical within study variance
 tau2 <- -((I2*v)/(I2 - 1))
 
-sim <- make_data(k = k, nc = n, nt = n, theta_r = theta_r)
+sim <- make_data(k = k, nc = n, nt = n, mu_theta = mu_theta)
 
 sim$theta_i <- rnorm(k, 0, sqrt(tau2))
-sim$theta_r_theta_i <- sim$theta_r + sim$theta_i 
-sim <- sim_studies(sim$theta_r_theta_i, sim$nc, sim$nt, data = sim)
+sim$es <- sim$mu_theta + sim$theta_i 
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 res <- rma(yi, vi, method = "REML", data = sim)
 ```
 
@@ -510,28 +522,24 @@ r_imgs$plot_metareg_cont
 
 ### Meta-regression with a categorical moderator
 
-A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effect-model) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms, we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*l*) and a value of 1 for an *online task* (*o*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* Equation \@ref(eq:random-effect-model) into Equation \@ref(eq:meta-regression). Now the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. To simulate this meta-regression, we need to fix the $\beta_{1}$ effect. Due to the fact that we are on a standardized scale, we can fix $\beta_{1}$ to be the expected difference in Cohen's $d$ scale between the two groups of studies. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\tau_{r}^{2}$ is the residual heterogeneity after explaining the
-variance due to $X_{1}$. We can describe our model using two equations according to the value of $X_{1}$ as reported in Equation \@ref(eq:meta-regression-equations).
+A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effect-model1) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms, we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*l*) and a value of 1 for an *online task* (*o*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* Equation \@ref(eq:random-effect-model) into Equation \@ref(eq:meta-regression). Now the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. To simulate this meta-regression, we need to fix the $\beta_{1}$ effect. Due to the fact that we are on a standardized scale, we can fix $\beta_{1}$ to be the expected difference between the two groups of studies. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\theta_i \sim \mathcal{N}(0, \tau_{r}^{2})$ where $\tau^2_r$ is the residual heterogeneity after including the moderator. We can describe our model using equation \@ref(eq:meta-regression-equations) according to the value of $X_{1i}$ (L = lab-based experiments, O = online experiments).
 
 \begin{align}
 \begin{gathered}
-d_i = \beta_0 + \theta_i + \beta_1 X_1 + \epsilon_i \\
-\theta_i \sim \mathcal{N}(0, \tau^2) \\
-\epsilon_i \sim \mathcal{N}(0,\sigma^2_i)
+y_i = \beta_0 + \theta_i + \beta_1 X_{1i} + \epsilon_i
 (\#eq:meta-regression)
 \end{gathered}
 \end{align}
 
 \begin{align}
 \begin{gathered}
-d_i = \beta_0 + \theta_i + \beta_1 X_1 + \epsilon_i \\
-d_{il} = \beta_0 + \theta_i + \beta_1 \times 0 + \epsilon_i \\
-d_{io} = \beta_0 + \theta_i + \beta_1 \times 1 + \epsilon_i \\
+y_{iL} = \beta_0 + \theta_i + \beta_1 \times 0 + \epsilon_i \\
+d_{iO} = \beta_0 + \theta_i + \beta_1 \times 1 + \epsilon_i \\
 (\#eq:meta-regression-equations)
 \end{gathered}
 \end{align}
 
-We can simulate the same scenario of the random-effects model with $k_o = 15$ (*online tasks*) and $k_l = 15$ (*lab-based tasks*). Then we fix the $\beta_1 = 0.2$ and $\tau_r^2 = 0.1$ ($r$ for residual).
+We can simulate the same scenario of the random-effects model with $k_O = 15$ (*online tasks*) and $k_L = 15$ (*lab-based tasks*). Then we fix the $\beta_1 = 0.2$ and $\tau_r^2 = 0.1$ ($r$ for residual).
 
 ```{r sim-meta-reg-dummy}
 set.seed(seed)
@@ -544,9 +552,9 @@ n <- 30 # the sample size per group, per study
 sim <- make_data(k = k, nc = n, nt = n, exp = rep(c("lab", "online"), each = k/2))
 
 sim$theta_i <- rnorm(k, 0, sqrt(tau2r)) # the by-study residual adjustment
-sim$b0_theta_i_x <- b0 + sim$theta_i + b1*ifelse(sim$exp == "lab", 0, 1)
+sim$es <- b0 + sim$theta_i + b1*ifelse(sim$exp == "lab", 0, 1)
 
-sim <- sim_studies(sim$b0_theta_i_x, sim$nc, sim$nt, data = sim)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 res <- rma(yi, vi, mods = ~exp, method = "REML", data = sim)
 ```
 
@@ -722,7 +730,7 @@ print_fun(c(simfuns$do_sim, simfuns$summary_sim))
 
 Simulation results are presented in Figure \@ref(fig:plot-power-analysis) and Table \@ref(tab:tab-power-analysis-example) showing that to reach 80% power (usually considered an appropriate level) with $\alpha = 0.05$ we need ~35 studies. The same approach could be used to estimate the power of a meta-regression by simply modifying the `do_sim()` function simulating the effect of a moderator and extracting the relevant p-value.
 
-```{r power-analysis-example, cache = TRUE}
+```{r power-analysis-example, cache = FALSE}
 set.seed(seed)
 nsim <- 5000 # number of simulations per condition (5000, higher is better)
 k <- c(5, 15, 25, 35, 50) # number of studies
