@@ -184,14 +184,14 @@ Using the method, we are estimating via simulation the standard deviation of the
 
 ```{r monte-carlo-simulation}
 set.seed(123) # seed for simulation to ensure the reproducibility of results
-theta <- 0.5 # real mean difference in the populations
+es <- 0.5 # real mean difference in the populations
 sigma <- 1 # real standard deviations in the population
 n <- 30 # sample size for both groups
 nsims <- 1e5 # number of simulations = 100000
 
 # simulates the sampling distribution of the mean difference
 d_mc <- replicate(nsims, expr = {
-  g1 <- rnorm(n = n, mean = theta, sd = sigma)
+  g1 <- rnorm(n = n, mean = es, sd = sigma)
   g2 <- rnorm(n = n, mean = 0, sd = sigma)
   mean(g1) - mean(g2) # calculates the sample mean difference and returns the value
 })
@@ -294,7 +294,7 @@ notation_table <- tibble::tribble(
       "$s_{T, C}$",        "", "Standard deviation of the experimental/control group",
         "$n_{T, C}$",  "nt, nc",        "Sample size of the experimental/control group",
              "$d_i$",      "yi",                                 "Observed effect size",
-      "$$\\sigma_{\\epsilon_i}^{2}$$",      "vi",                          "Observed sampling variance",
+      "$\\sigma_{\\epsilon_i}^{2}$",      "vi",                          "Observed sampling variance",
        "$\\theta_i$", "theta\\_i",              "Random effect for the study i",
         "$\\beta_0$",      "b0",                            "Meta-regression intercept",
          "$\\beta_1$",      "b1",                                "Meta-regression slope",
@@ -411,16 +411,16 @@ Compared to the *fixed-effects model* we need to generate another adjustment to 
 set.seed(seed)
 k <- 30 # number of studies
 n <- 20 # number of participants per group, per study
-mu_theta <- 0.3 # real effect size
+mu <- 0.3 # real effect size
 tau2 <- 0.2 # the effect size heterogeneity
 
-sim <- make_data(k = k, nc = n, nt = n, mu_theta = mu_theta)
+sim <- make_data(k = k, nc = n, nt = n, mu = mu)
 
 # simulate the random-effects adjustment
 sim$theta_i <- rnorm(k, 0, sqrt(tau2))
 
 # adding the by-study adjustment to the average effect
-sim$es <- sim$mu_theta + sim$theta_i 
+sim$es <- sim$mu + sim$theta_i 
 
 # now we are using theta_r_theta_i and no longer theta_f
 sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
@@ -440,11 +440,11 @@ there will be variability among effect sizes. In other words, increasing the sam
 ```{r random-effect-high-low-precision, echo = FALSE, fig.asp=0.8, fig.cap=get_caption()}
 set.seed(seed)
 k <- 10 # number of studies
-mu_theta <- 0.3 # real effect size
+mu <- 0.3 # real effect size
 tau2 <- 0.2
 n <- c(30, 500)
 
-sim <- make_data(k = k, mu_theta = mu_theta)
+sim <- make_data(k = k, mu = mu)
 
 sim <- expand_grid(sim, nc = n)
 sim$nt <- sim$nc
@@ -453,7 +453,7 @@ theta_i <- rnorm(k, 0, sqrt(tau2))
 
 sim$theta_i <- rep(theta_i, each = 2)
 
-sim$es <- sim$mu_theta + sim$theta_i
+sim$es <- sim$mu + sim$theta_i
 sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 
 fit_lp <- rma(yi, vi, method = "REML", data = filter(sim, nc == 30 & nt == 30))
@@ -487,17 +487,17 @@ Given the interpretation of $I^{2}$ it is possible to simulate a meta-analysis f
 ```{r sim-random-effect-i2}
 set.seed(seed)
 k <- 30 # number of studies
-mu_theta <- 0.3 # real effect size
+mu <- 0.3 # real effect size
 n <- 30 # sample size per group, per study
 I2 <- 0.6 # desired I2 value
 
-v <- (n + n)/(n * n) + mu_theta^2/(2 * (n + n - 2)) # typical within study variance
+v <- (n + n)/(n * n) + mu^2/(2 * (n + n - 2)) # typical within study variance
 tau2 <- -((I2*v)/(I2 - 1))
 
-sim <- make_data(k = k, nc = n, nt = n, mu_theta = mu_theta)
+sim <- make_data(k = k, nc = n, nt = n, mu = mu)
 
 sim$theta_i <- rnorm(k, 0, sqrt(tau2))
-sim$es <- sim$mu_theta + sim$theta_i 
+sim$es <- sim$mu + sim$theta_i 
 sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 res <- rma(yi, vi, method = "REML", data = sim)
 ```
@@ -522,7 +522,7 @@ r_imgs$plot_metareg_cont
 
 ### Meta-regression with a categorical moderator
 
-A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effect-model1) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms, we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*l*) and a value of 1 for an *online task* (*o*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* Equation \@ref(eq:random-effect-model) into Equation \@ref(eq:meta-regression). Now the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. To simulate this meta-regression, we need to fix the $\beta_{1}$ effect. Due to the fact that we are on a standardized scale, we can fix $\beta_{1}$ to be the expected difference between the two groups of studies. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\theta_i \sim \mathcal{N}(0, \tau_{r}^{2})$ where $\tau^2_r$ is the residual heterogeneity after including the moderator. We can describe our model using equation \@ref(eq:meta-regression-equations) according to the value of $X_{1i}$ (L = lab-based experiments, O = online experiments).
+A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effect-model1) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms (see equation \@ref(eq:meta-regression)), we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*L*) and a value of 1 for an *online task* (*O*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* (i.e., the expected mean difference between the two groups of studies) and the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\theta_i \sim \mathcal{N}(0, \tau_{r}^{2})$ where $\tau^2_r$ is the residual heterogeneity after including the moderator. We can describe our model using equation \@ref(eq:meta-regression-equations) according to the value of $X_{1i}$ (L = lab-based experiments, O = online experiments).
 
 \begin{align}
 \begin{gathered}
@@ -534,7 +534,7 @@ y_i = \beta_0 + \theta_i + \beta_1 X_{1i} + \epsilon_i
 \begin{align}
 \begin{gathered}
 y_{iL} = \beta_0 + \theta_i + \beta_1 \times 0 + \epsilon_i \\
-d_{iO} = \beta_0 + \theta_i + \beta_1 \times 1 + \epsilon_i \\
+d_{iO} = \beta_0 + \theta_i + \beta_1 \times 1 + \epsilon_i
 (\#eq:meta-regression-equations)
 \end{gathered}
 \end{align}
@@ -602,9 +602,9 @@ sim$age0 <- rep(x10, each = 2)
 theta_i <- rnorm(k, 0, sqrt(tau2r))
 sim$theta_i <- rep(theta_i, each = 2)
 
-sim$b0_theta_i_x <- b0 + sim$theta_i + sim$b1*sim$age0
+sim$es <- b0 + sim$theta_i + sim$b1*sim$age0
 
-sim <- sim_studies(sim$b0_theta_i_x, sim$nc, sim$nt, data = sim)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 ```
 
 ```{r plot-meta-reg-plausible-implausible, echo = FALSE, fig.cap=get_caption()}
@@ -670,9 +670,9 @@ sim <- make_data(k = k, nt = n, nc = n, age = x1)
 
 sim$theta_i <- rnorm(k, 0, sqrt(tau2r))
 sim$age0 <- scale(sim$age, center = TRUE, scale = TRUE) # standardize the moderator
-sim$b0_theta_i_x <- b0 + sim$theta_i + b1*sim$age0
+sim$es <- b0 + sim$theta_i + b1*sim$age0
 
-sim <- sim_studies(sim$b0_theta_i_x, sim$nt, sim$nc, data = sim)
+sim <- sim_studies(sim$es, sim$nt, sim$nc, data = sim)
 res <- rma(yi, vi, mods = ~age0, method = "REML", data = sim)
 ```
 
@@ -730,18 +730,18 @@ print_fun(c(simfuns$do_sim, simfuns$summary_sim))
 
 Simulation results are presented in Figure \@ref(fig:plot-power-analysis) and Table \@ref(tab:tab-power-analysis-example) showing that to reach 80% power (usually considered an appropriate level) with $\alpha = 0.05$ we need ~35 studies. The same approach could be used to estimate the power of a meta-regression by simply modifying the `do_sim()` function simulating the effect of a moderator and extracting the relevant p-value.
 
-```{r power-analysis-example, cache = FALSE}
+```{r power-analysis-example, cache = TRUE}
 set.seed(seed)
 nsim <- 5000 # number of simulations per condition (5000, higher is better)
 k <- c(5, 15, 25, 35, 50) # number of studies
-theta <- 0.3 # the average effect size
+delta <- 0.3 # the average effect size
 tau2 <- 0.3 # the heterogeneity
 navg <- 20 # average sample size per study
 nmin <- 10 # minimum sample size per study
 alpha <- 0.05 # the alpha level
 
 # creating all combinations
-sim_grid <- tidyr::expand_grid(k, theta, tau2, navg, nmin, nsim)
+sim_grid <- tidyr::expand_grid(k, mu, tau2, navg, nmin, nsim)
 
 # apply the simulation to all combinations
 res <- purrr::pmap(sim_grid, do_sim)
@@ -758,14 +758,14 @@ sim_grid$nmin <- as.integer(sim_grid$nmin)
 sim_grid$nsim <- as.integer(sim_grid$nsim)
 
 sim_grid_t <- sim_grid
-names(sim_grid_t) <- c("k", "$\\theta$", "$\\tau^2$", "$n_{avg}$", "$n_{min}$", "nsim", "Power")
+names(sim_grid_t) <- c("k", "$\\Delta$", "$\\tau^2$", "$n_{avg}$", "$n_{min}$", "nsim", "Power")
 
 sim_grid_t |> 
   qtab(caption = get_caption(), escape = FALSE)
 ```
 
 ```{r plot-power-analysis, echo = FALSE, fig.cap=get_caption()}
-title <- latex2exp::TeX(sprintf("$n_{avg} = %.1f$, $\\tau^2 = %s$, $\\theta_r = %s$, $\\alpha = 0.05$", sim_grid$navg[1], tau2, theta_r, 0.05))
+title <- latex2exp::TeX(sprintf("$n_{avg} = %.1f$, $\\tau^2 = %s$, $\\Delta = %s$, $\\alpha = 0.05$", sim_grid$navg[1], tau2, delta, 0.05))
 
 sim_grid |> 
   ggplot(aes(x = k, y = power)) +
@@ -819,7 +819,7 @@ The manuscript preprint has been uploaded on PsyArXiv [https://psyarxiv.com/br6v
 
 <!-- FIGURE AND TABLES CAPTIONS -->
 
-(ref:img-fixed-vs-random) The difference between the assumptions of the *fixed* and *random-effects model*. Each distribution depicts the sampling distribution of $k = 4$ hypothetical studies ($i = 1$, $2$, ..., $4$) with a certain observed effect size $d_{i}$, sampling variability $\sigma_{i}^{2}$ and the 95% confidence interval (black segment). The *fixed-effects* plot on the left suggests that each observed effect size has the same underlying true effect $\theta_{f}$ (each distribution has the same mean) with a different degree of precision (e.g., Study 1 is more precise than Study 3). In practice, each study has a different observed effect size where studies with high precision (i.e., narrow sampling distributions) will be remarkably close to the real effect ($\theta_{f}$). The *random-effects model* on the right suggests that beyond the error term ($\epsilon_{i}$), each real effect size is composed of a fixed part (now $\theta_{r}$) and a random part ($\theta_{i}$, black segments below the sampling distributions). The random part is determined by $\tau^{2}$, which represents the variability of the effect size distribution at the population level. When $\tau^{2}$ is zero, the random-effects reduces to a fixed-effects model.
+(ref:img-fixed-vs-random) The difference between the assumptions of the *fixed* and *random-effects model*. Each distribution depicts the sampling distribution of $k = 4$ hypothetical studies ($i = 1$, $2$, ..., $4$) with a certain observed effect size $y_{i}$ (red squares), sampling variability $\sigma_{i}^{2}$ and the 95% confidence interval (black segment). The *fixed-effects* plot on the left suggests that each observed effect size has the same underlying true effect $\theta$ (each distribution has the same mean) with a different degree of precision (e.g., Study 1 is more precise than Study 3). In practice, each study has a different observed effect size where studies with high precision (i.e., narrow sampling distributions) will be remarkably close to the real effect ($\theta$). The *random-effects model* on the right suggests that beyond the error term ($\epsilon_{i}$), each real effect size is composed of a fixed part (now $\mu_{\theta}$) and a random part ($\theta_{i}$, black segments below the sampling distributions). The random part is determined by $\tau^{2}$, which represents the variability of the effect size distribution at the population level. When $\tau^{2}$ is zero, the random-effects reduces to a fixed-effects model.
 
 (ref:img-multilevel) Graphical representation of a *multilevel* (three-level) model. On the top, the effect sizes are distributed at the population level. Then, each study is defined as the overall effect and the random effects determined by $\tau^{2}$, $\theta_{r} + \theta_{i}$. Finally, each experiment (effect size) within a study is composed of the study-specific effect $\theta_{r} + \theta_{i}$ and the experiment-specific random-effects $\theta_{r} + \theta_{i} + \theta_{\text{ij}}$ determined by $\omega^{2}$.
 
