@@ -25,16 +25,16 @@ fixed_effect <- data.frame(
   di = 0.5
 )
 
-fixed_effect$note <- sprintf("$d_i = \\theta_f + \\epsilon_i$")
+fixed_effect$note <- sprintf("$y_i = \\theta + \\epsilon_i$")
 
 random_effect <- data.frame(
   id = 1:4,
   yi = c(-0.1, 0.4, 0.7, 0.25),
-  vi = c(0.01, 0.02, 0.08, 0.1),
+  vi = c(0.05, 0.08, 0.1, 0.2),
   model = "Random-Effects"
 )
 
-random_effect$note <- sprintf("$d_i = \\theta_r + theta_i + \\epsilon_i$")
+random_effect$note <- sprintf("$y_i = \\mu_{\\theta} + \\theta_i + \\epsilon_i$")
 
 random_effect$di <- mean(random_effect$yi)
 
@@ -43,7 +43,10 @@ models$dist <- map2(models$yi, sqrt(models$vi), distributional::dist_normal)
 models$note <- latex2exp::TeX(models$note, output = "character")
 models$delta <- models$yi - models$di
 
-fixed_vs_random <- ggplot(models, aes(y = factor(id))) +
+set.seed(2036)
+models$obs <- mapply(function(m, s) rnorm(1, m, s), models$yi, sqrt(models$vi))
+
+ggplot(models, aes(y = factor(id))) +
   geom_vline(aes(xintercept = di), linetype = "dashed", alpha = 0.5) +
   stat_dist_halfeye(aes(dist = dist), .width = 0.95) +
   facet_wrap(~model, scales = "free_x") +
@@ -58,10 +61,11 @@ fixed_vs_random <- ggplot(models, aes(y = factor(id))) +
              family = "lmroman") +
   geom_segment(aes(x = di + delta, xend = di, y = id-0.08, yend = id-0.08),
                position = position_dodge2(width = 1, padding = 1)) +
+  geom_point(aes(x = obs, y = factor(id)), color = "firebrick2", size = 2, shape = 15) +
   geom_point(aes(x = yi, y = id-0.08, alpha = model), show.legend = FALSE) +
   scale_alpha_manual(values = c(0, 1))
 
-# Metaregression with binary predictor ------------------------------------
+ # Metaregression with binary predictor ------------------------------------
 
 binary_metareg <- data.frame(
   id = 1:6,
