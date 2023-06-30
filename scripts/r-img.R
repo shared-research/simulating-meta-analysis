@@ -134,7 +134,7 @@ p_up_right <- ggplot(up_right) +
         axis.text.y = element_blank(),
         axis.title.y = element_blank(),
         axis.ticks.y = element_blank()) +
-  geom_label(aes(x = theta, y = 3), 
+  geom_label(aes(x = mu, y = 3), 
              label = TeX("$N(\\mu_{\\theta}, \\tau^2)$"), 
              parse = TRUE,
              size = 7,
