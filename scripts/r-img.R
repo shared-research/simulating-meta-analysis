@@ -46,26 +46,110 @@ models$delta <- models$yi - models$di
 set.seed(2036)
 models$obs <- mapply(function(m, s) rnorm(1, m, s), models$yi, sqrt(models$vi))
 
-ggplot(models, aes(y = factor(id))) +
+p_fixed_down <- ggplot(filter(models, model == "Fixed-Effects"), aes(y = factor(id))) +
   geom_vline(aes(xintercept = di), linetype = "dashed", alpha = 0.5) +
   stat_dist_halfeye(aes(dist = dist), .width = 0.95) +
+  xlim(c(-1,2)) +
   facet_wrap(~model, scales = "free_x") +
   ylab("Study") +
-  xlab(TeX("$d_i$")) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks = element_blank(),
-        axis.title.x = element_blank(),
-        strip.text = element_text(family = "lmroman")) +
+  xlab(TeX("$y_i$")) +
   theme_rfig() +
-  geom_label(aes(x = di, y = 0.6, label = note), parse = TRUE, size = 7, label.size = NA,
-             family = "lmroman") +
+  theme(strip.text = element_text(family = "lmroman"),
+        strip.text.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_label(aes(x = di, y = 0.6, label = note), parse = TRUE, size = 7, label.size = NA) +
   geom_segment(aes(x = di + delta, xend = di, y = id-0.08, yend = id-0.08),
                position = position_dodge2(width = 1, padding = 1)) +
   geom_point(aes(x = obs, y = factor(id)), color = "firebrick2", size = 2, shape = 15) +
   geom_point(aes(x = yi, y = id-0.08, alpha = model), show.legend = FALSE) +
   scale_alpha_manual(values = c(0, 1))
 
- # Metaregression with binary predictor ------------------------------------
+p_random_down <- ggplot(filter(models, model == "Random-Effects"), aes(y = factor(id))) +
+  geom_segment(aes(x = di + delta, xend = di + delta,
+                   y = factor(id), yend = Inf),
+               alpha = 0.3) +
+  geom_vline(aes(xintercept = di), linetype = "dashed", alpha = 0.5) +
+  stat_dist_halfeye(aes(dist = dist), .width = 0.95) +
+  xlim(c(-1,2)) +
+  facet_wrap(~model, scales = "free_x") +
+  ylab("Study") +
+  xlab(TeX("$y_i$")) +
+  theme_rfig() +
+  theme(strip.text = element_text(family = "lmroman"),
+        strip.text.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_label(aes(x = di, y = 0.6, label = note), parse = TRUE, size = 7, label.size = NA) +
+  # geom_segment(aes(x = di + delta, xend = di, y = id-0.08, yend = id-0.08),
+  #              position = position_dodge2(width = 1, padding = 1)) +
+  geom_point(aes(x = obs, y = factor(id)), color = "firebrick2", size = 2, shape = 15) +
+  geom_point(aes(x = yi, y = id-0.08, alpha = model), show.legend = FALSE) +
+  scale_alpha_manual(values = c(0, 1)) +
+  geom_segment(aes(x = di + delta, xend = di + delta,
+                   y = factor(id), yend = Inf),
+               alpha = 0.3)
+
+up_left <- data.frame(
+  id = 1,
+  theta = 0.5
+)
+
+up_right <- data.frame(
+  id = 1,
+  mu = 0.3125,
+  tau2 = 0.1
+)
+
+up_right$dist <- distributional::dist_normal(up_right$mu, sqrt(up_right$tau2))
+
+p_up_left <- ggplot(up_left) +
+  geom_label(aes(x = theta, y = 3), 
+             label = TeX("$\\theta$"), 
+             parse = TRUE,
+             size = 7,
+             label.size = NA) +
+  ylim(c(1, 5)) +
+  xlim(c(-1, 2)) +
+  cowplot::theme_nothing() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+p_up_right <- ggplot(up_right) +
+  stat_halfeye(aes(y = id, dist = dist), .width = 0.95, fill = "#7FB3D5") +
+  ylim(c(1, 5)) +
+  xlim(c(-1, 2)) +
+  cowplot::theme_nothing() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  geom_label(aes(x = theta, y = 3), 
+             label = TeX("$N(\\mu_{\\theta}, \\tau^2)$"), 
+             parse = TRUE,
+             size = 7,
+             label.size = NA)
+
+
+p_fixed <- cowplot::plot_grid(p_up_left, p_fixed_down, ncol = 1, align = "v",
+                              rel_heights = c(0.33, 0.66))
+p_random <- cowplot::plot_grid(p_up_right, p_random_down, ncol = 1, align = "v",
+                               rel_heights = c(0.33, 0.66))
+
+
+fixed_vs_random <- cowplot::plot_grid(p_fixed, p_random, ncol = 2)
+
+# Metaregression with binary predictor ------------------------------------
 
 binary_metareg <- data.frame(
   id = 1:6,
