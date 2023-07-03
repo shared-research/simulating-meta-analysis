@@ -173,6 +173,9 @@ binary_metareg$gm <- mean(binary_metareg$yi)
 
 xlim <- c(mean(mm) - 1, mean(mm) + 1)
 
+set.seed(2027)
+binary_metareg$obs <- rnorm(nrow(binary_metareg), binary_metareg$yi, sqrt(binary_metareg$vi))
+
 plot_metareg_bin <- ggplot(binary_metareg,
                            aes(y = id)) +
   geom_segment(aes(x = gm, xend = yi, y = id-0.2, yend = id-0.2),
@@ -201,7 +204,8 @@ plot_metareg_bin <- ggplot(binary_metareg,
   annotate("text", x = 1, y = 2, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
            parse = TRUE, color = "darkgreen", 
-           family = "bold", size = 8)
+           family = "bold", size = 8) +
+  geom_point(aes(x = obs, y = id), color = "firebrick", shape = 15, size = 2.5)
 
 # Metaregression with numerical predictor ---------------------------------
 
@@ -227,8 +231,10 @@ cont_metareg$pi <- predict(fit, newdata = data.frame(x = cont_metareg$x-0.1))
 cont_metareg$gm <- mean(cont_metareg$yi)
 cont_metareg$res <- cont_metareg$yi - cont_metareg$pi
 
-plot_metareg_cont <- ggplot(cont_metareg,
-                            aes(x = x, y = yi)) +
+set.seed(2027)
+cont_metareg$obs <- rnorm(nrow(cont_metareg), cont_metareg$yi, sqrt(cont_metareg$vi))
+
+plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
   geom_segment(aes(x = x-0.1, xend = x-0.1, y = pi, yend = yi), color = "firebrick", linewidth = 1) +
   geom_segment(aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), color = "darkgreen", linewidth = 1) +
   geom_point(aes(x = x-0.1, y = yi), size = 3, color = "black") +
@@ -241,7 +247,7 @@ plot_metareg_cont <- ggplot(cont_metareg,
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) +
   theme_rfig() +
-  ylab(latex2exp::TeX("$d_i$")) +
+  ylab(latex2exp::TeX("$y_i$")) +
   ggtitle("Numerical Predictor") +
   annotate("text", x = 6.5, y = 0.25,
            label = TeX("\\textbf{Residual $\\tau^2$}"), 
@@ -250,7 +256,8 @@ plot_metareg_cont <- ggplot(cont_metareg,
   annotate("text", x = 6.5, y = 0.3, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
            parse = TRUE, color = "darkgreen", size = 8,
-           family = "lmroman")
+           family = "lmroman") +
+  geom_point(aes(x = x, y = obs), color = "firebrick", shape = 15, size = 2.5)
 
 # Saving ------------------------------------------------------------------
 
