@@ -15,17 +15,17 @@ theme_rfig <- function(size = 15){
   ltxplot::theme_latex(base_size = size)
 }
 
-# Fixed-vs-Random Effect --------------------------------------------------
+# Equal-vs-Random Effect --------------------------------------------------
 
-fixed_effect <- data.frame(
+equal_effects <- data.frame(
   id = 1:4,
   yi = rep(0.5, 4),
   vi = c(0.01, 0.02, 0.1, 0.05),
-  model = "Fixed-Effects",
+  model = "Equal-Effects",
   di = 0.5
 )
 
-fixed_effect$note <- sprintf("$y_i = \\theta + \\epsilon_i$")
+equal_effects$note <- sprintf("$y_i = \\theta + \\epsilon_i$")
 
 random_effect <- data.frame(
   id = 1:4,
@@ -38,7 +38,7 @@ random_effect$note <- sprintf("$y_i = \\mu_{\\theta} + \\theta_i + \\epsilon_i$"
 
 random_effect$di <- mean(random_effect$yi)
 
-models <- rbind(fixed_effect, random_effect)
+models <- rbind(equal_effects, random_effect)
 models$dist <- map2(models$yi, sqrt(models$vi), distributional::dist_normal)
 models$note <- latex2exp::TeX(models$note, output = "character")
 models$delta <- models$yi - models$di
@@ -46,7 +46,7 @@ models$delta <- models$yi - models$di
 set.seed(2036)
 models$obs <- mapply(function(m, s) rnorm(1, m, s), models$yi, sqrt(models$vi))
 
-p_fixed_down <- ggplot(filter(models, model == "Fixed-Effects"), aes(y = factor(id))) +
+p_equal_down <- ggplot(filter(models, model == "Equal-Effects"), aes(y = factor(id))) +
   geom_vline(aes(xintercept = di), linetype = "dashed", alpha = 0.5) +
   stat_dist_halfeye(aes(dist = dist), .width = 0.95) +
   xlim(c(-1,2)) +
@@ -141,13 +141,13 @@ p_up_right <- ggplot(up_right) +
              label.size = NA)
 
 
-p_fixed <- cowplot::plot_grid(p_up_left, p_fixed_down, ncol = 1, align = "v",
+p_equal <- cowplot::plot_grid(p_up_left, p_equal_down, ncol = 1, align = "v",
                               rel_heights = c(0.33, 0.66))
 p_random <- cowplot::plot_grid(p_up_right, p_random_down, ncol = 1, align = "v",
                                rel_heights = c(0.33, 0.66))
 
 
-fixed_vs_random <- cowplot::plot_grid(p_fixed, p_random, ncol = 2)
+equal_vs_random <- cowplot::plot_grid(p_equal, p_random, ncol = 2)
 
 # Metaregression with binary predictor ------------------------------------
 
@@ -261,7 +261,7 @@ plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
 
 # Saving ------------------------------------------------------------------
 
-r_imgs <- list(fixed_vs_random = fixed_vs_random, 
+r_imgs <- list(equal_vs_random = equal_vs_random, 
                plot_metareg_bin = plot_metareg_bin,
                plot_metareg_cont = plot_metareg_cont)
 
