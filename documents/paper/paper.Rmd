@@ -47,6 +47,7 @@ header-includes:
   - \captionsetup[figure]{font={stretch=1,footnotesize}}
   - \usepackage{float}
   - \usepackage{orcidlink}
+  - \newcommand{\rev}[1]{\textcolor{red}{#1}}
 
 #csl               : "`r system.file('rmd', 'apa7.csl', package = 'papaja')`"
 documentclass     : "apa6"
@@ -123,7 +124,7 @@ simfuns <- get_funs(here("R", "sim-utils.R")) # getting all funs
 
 > "If you do not simulate it, you have not understood it." 
 
-A meta-analysis is an essential tool for combining knowledge from multiple studies quantitatively. Meta-analysis is commonly used together with a systematic review of the literature. The meta-analysis has several advantages. Firstly, it allows combining evidence from multiple studies assigning more weight to studies with lower estimation variability. Then using meta-regression, it is possible to include variables (i.e., moderators) to explain the observed heterogeneity [@Borenstein2009-mo, pp.187-203]. More recently, location-scale models have been developed to inlcude predictors also on the residual heterogeneity [@Viechtbauer2022-rz]. Finally, considering the replication crisis, there are statistical methods to determine the presence and extent of the publication bias. Despite the advantages, meta-analysis implementation is not always straightforward, especially for complex data structures. Additionally, the fact that there are several introductory and advanced resources to understand meta-analysis [@Borenstein2009-mo; @Schmid2022-xe; @Harrer2021-bz], to our knowledge, there are no introductory resources about how to simulate realistic meta-analytic data. Simulating data has several advantages because it requires understanding the statistical method and the data-generation process. Furthermore, data simulation is the primary tool when it comes to evaluating a new analysis method, estimating the statistical power, or understanding the long-run behavior of our data generation process [@Ingalls2011-xt; @Gelman2020-tg, pp. 69-76; @Gelman2006-pc, pp. 155-176]. A recent paper by DeBruine and Barr [-@DeBruine2021-id], which deeply inspired the current work, proposed a stimulating way to understand linear mixed effects via data simulation. Simulating data is also a powerful educational tool within this framework. For these reasons, this work aims to introduce the basic concepts of meta-analysis and Monte Carlo simulations for equal and random-effects, and meta-regression models with applications also for statistical power calculation. In the first section, we will introduce basic concepts of the meta-analysis that are useful for setting up the simulation. We will evaluate the effect size, variance calculation, and the fixed vs. random effects model distinction. Then we will describe how to simulate data for these models and simulate a meta-regression model with a categorical and numerical predictor. Finally, we will introduce the power analysis extending the previous examples to estimate the statistical power. We used the R statistical programming language `r rcit`. We assume the reader is familiar with the basic concepts of R, but core functions will be explained. Code and materials are available on the OSF repository ([https://osf.io/54djn/](https://osf.io/54djn/)). Simulation examples for multivariate and multilevel models and more details about the coding approach are available in the supplementary materials.
+A meta-analysis is an essential tool for combining knowledge from multiple studies quantitatively. Meta-analysis is commonly used together with a systematic review of the literature. The meta-analysis has several advantages. Firstly, it allows combining evidence from multiple studies assigning more weight to studies with lower estimation variability. Then using meta-regression, it is possible to include variables (i.e., moderators) to explain the observed heterogeneity [@Borenstein2009-mo, pp.187-203]. More recently, location-scale models have been developed to include predictors also on the residual heterogeneity [@Viechtbauer2022-rz]. Finally, considering the replication crisis, there are statistical methods to determine the presence and extent of the publication bias. Despite the advantages, meta-analysis implementation is not always straightforward, especially for complex data structures. Additionally, the fact that there are several introductory and advanced resources to understand meta-analysis [@Borenstein2009-mo; @Schmid2022-xe; @Harrer2021-bz], to our knowledge, there are no introductory resources about how to simulate realistic meta-analytic data. Simulating data has several advantages because it requires understanding the statistical method and the data-generation process. Furthermore, data simulation is the primary tool when it comes to evaluating a new analysis method, estimating the statistical power, or understanding the long-run behavior of our data generation process [@Ingalls2011-xt; @Gelman2020-tg, pp. 69-76; @Gelman2006-pc, pp. 155-176]. A recent paper by DeBruine and Barr [-@DeBruine2021-id], which deeply inspired the current work, proposed a stimulating way to understand linear mixed effects via data simulation. Simulating data is also a powerful educational tool within this framework. For these reasons, this work aims to introduce the basic concepts of meta-analysis and Monte Carlo simulations for equal and random-effects, and meta-regression models with applications also for statistical power calculation. In the first section, we will introduce basic concepts of the meta-analysis that are useful for setting up the simulation. We will evaluate the effect size, variance calculation, and the equal vs. random effects model distinction. Then we will describe how to simulate data for these models and simulate a meta-regression model with a categorical and numerical predictor. Finally, we will introduce the power analysis extending the previous examples to estimate the statistical power. We used the R statistical programming language `r rcit`. We assume the reader is familiar with the basic concepts of R, but core functions will be explained. Code and materials are available on the OSF repository ([https://osf.io/54djn/](https://osf.io/54djn/)). A theoretical introduction, simulation examples for multivariate and multilevel models, and more details about the coding approach are available in the supplementary materials.
 
 ## Meta-analysis introduction
 
@@ -144,23 +145,6 @@ The core of a meta-analysis is combining the results of multiple studies giving 
 
 ```{r img-equal-vs-random, echo=FALSE, fig.asp=1, fig.cap=get_caption()}
 r_imgs$equal_vs_random
-```
-
-### Multilevel and multivariate models
-
-The most straightforward situation for a meta-analysis is when each included study contributes with a single effect size. However, it is common to have multiple effect sizes belonging to the same study creating a situation of dependency between statistical units. There are numerous sources of dependency for a meta-analysis [@Cheung2014-fg; @Cheung2015-bw, pp. 121-122]. The first type of dependency (*multilevel*) consists of multiple effect sizes from independent participants. Despite being collected with different participants, effect sizes from the same study could be correlated. We obtain a multilevel data structure with independent effect sizes in the same study. There are multiple ways to model this data structure [see @Cheung2014-fg for an overview]. Still, the most common way is to use a *multilevel meta-analysis model,* considering the heterogeneity between and within studies. The standard *random-effects* (but also the *equal-effects model*) model is also called a *two-level* model because it combines data after aggregating the participants-level (*first-level*) data. The *three-level* model is commonly used to manage the multilevel data structure [@Cheung2014-fg; @Cheung2019-po]. Compared to the *two-level* model, the *three-level* model estimates two heterogeneity parameters ($\tau^{2}$ and $\omega^{2}$), one for the heterogeneity between studies and the other for the heterogeneity within studies.
-
-A second type of dependency (*multivariate*) consists of multiple effect sizes collected from the same pool of participants. For example, when using two cognitive tasks on the same pool of participants. This is commonly known as *multivariate meta-analysis* because the effect sizes sampling errors are correlated given that participants are assessed multiple times. A *multivariate meta-analysis model* could be used to
-consider the correlation between sampling errors.
-
-A third type of dependency arises when true effect sizes are correlated at the population level [@Cheung2015-bw, pp. 121-122]. For example, two different memory tasks could be correlated because the latent psychological constructs are intrinsically correlated. This correlation is present even when other groups of participants perform the two memory tasks (i.e., no *multivariate* dependency) or are administered by different researchers (i.e., no *multilevel* dependency). This type of dependency could be managed by estimating the correlation between outcomes using a *multivariate random-effects model* [@Cheung2015-bw, pp. 127-130]. Figures \@ref(fig:img-multilevel) and \@ref(fig:img-multivariate) depict the conceptual idea of *multilevel* and *multivariate* models.
-
-```{r img-multilevel, echo=FALSE, out.width="80%", fig.cap = get_caption()}
-knitr::include_graphics("img/multilevel.pdf")
-```
-
-```{r img-multivariate, echo=FALSE, out.width="80%", fig.cap = get_caption()}
-knitr::include_graphics("img/multivariate.pdf ")
 ```
 
 # Simulation
@@ -289,7 +273,7 @@ notation_table <- tibble::tribble(
   "$\\overline{T}, \\overline{C}$",        "",               "Mean of the experimental/control group",
       "$s_{T, C}$",        "", "Standard deviation of the experimental/control group",
         "$n_{T, C}$",  "nt, nc",        "Sample size of the experimental/control group",
-             "$d_i$",      "yi",                                 "Observed effect size",
+             "$y_i$",      "yi",                                 "Observed effect size",
       "$\\sigma_{\\epsilon_i}^{2}$",      "vi",                          "Observed sampling variance",
        "$\\delta_i$", "deltai",              "Random effect for the study i",
         "$\\beta_0$",      "b0",                            "Meta-regression intercept",
@@ -306,7 +290,7 @@ notation_table |>
             caption = "Variables in the data-generating model and associated R code.",
             escape = FALSE,
             placement = "H",
-            note = "The \\texttt{yi} and \\texttt{vi} notation for the observed effect size ($d_i$) and sampling variance ($\\sigma^2_i$) has been used to be consistent with the \\texttt{metafor} notation.")
+            note = "The \\texttt{yi} and \\texttt{vi} notation for the observed effect size ($y_i$) and sampling variance ($\\sigma^2_i$) has been used to be consistent with the \\texttt{metafor} notation.")
 ```
 
 ## Equal-effects model
@@ -459,12 +443,19 @@ forest(fit_lp, main = "N = 30", xlim = c(-3, 4), alim = c(-2, 2))
 forest(fit_hp, main = "N = 500", xlim = c(-3, 4), alim = c(-2, 2))
 ```
 
-The relationship between the sampling error and the heterogeneity can be expressed using the $I^{2}$ statistics [e.g., @Higgins2002-fh] that is the percentage of the total variability $\tau^{2} + \tilde{v}$ that is attributable to real heterogeneity between studies ($\tau^{2}$). In Equation \@ref(eq:isquared), $\tilde{v}$ is the "typical" within-study sampling variability [e.g., @Higgins2002-fh]^[see also here https://www.metafor-project.org/doku.php/tips:i2_multilevel_multivariate#fn__1 for an overview of the $I^2$ statistics also for complex models].
+The relationship between the sampling error and the heterogeneity can be expressed using the $I^{2}$ statistics [e.g., @Higgins2002-fh] that is the percentage of the total variability $\tau^{2} + \tilde{v}$ that is attributable to real heterogeneity between studies ($\tau^{2}$). In Equation \@ref(eq:isquared), $\tilde{v}$ is the "typical" within-study sampling variability as proposed by Higgins and Thompson [-@Higgins2002-fh]^[see also here https://www.metafor-project.org/doku.php/tips:i2_multilevel_multivariate#fn__1 for an overview of the $I^2$ statistics also for complex models] and implemented in Equation  \@ref(eq:typical-v) with $w_i = 1/\sigma_{\epsilon_i}^{2}$ and $k$ is the number of studies.
 
 \begin{align}
 \begin{gathered}
 I^2 = \frac{\hat{\tau}^2}{\hat{\tau}^2 + \tilde{v}}
 (\#eq:isquared)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\tilde{v} = \frac{(k-1) \sum w_i}{(\sum w_i)^2 - \sum w_i^2}
+(\#eq:typical-v)
 \end{gathered}
 \end{align}
 
@@ -517,7 +508,7 @@ r_imgs$plot_metareg_cont
 
 ### Meta-regression with a categorical moderator
 
-A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effects-model1) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms (see equation \@ref(eq:meta-regression)), we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*L*) and a value of 1 for an *online task* (*O*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* (i.e., the expected mean difference between the two groups of studies) and the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\delta_i \sim \mathcal{N}(0, \tau_{r}^{2})$ where $\tau^2_r$ is the residual heterogeneity after including the moderator. We can describe our model using equation \@ref(eq:meta-regression-equations) according to the value of $X_{1i}$ (L = lab-based experiments, O = online experiments).
+A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \@ref(eq:random-effects-model1) can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs. lab-based) and the expected difference between the two levels of the moderator (i.e., the *lab vs. online effect*). In regression terms (see equation \@ref(eq:meta-regression)), we could use a dummy variable ($X_{1}$) that takes the value of 0 for the *lab-based task* (*L*) and a value of 1 for an *online task* (*O*)^[The *dummy coding* (also known as treatment coding) is the default in R and `metafor` but other coding schemes could be used [see @Schad2020-ht for an overview of contrast coding schemes]. As in standard linear regression, the contrast coding of categorical factors or the presence/absence of the intercept influence the interpretation of estimated model parameters and omnibus meta-regression tests (see https://www.metafor-project.org/doku.php/tips:models_with_or_without_intercept for a detailed discussion)]. Now we fix $\beta_{1}$ to be the *lab vs. online effect* (i.e., the expected mean difference between the two groups of studies) and the product between $\beta_{1}X_{1}$ will consider the *lab vs. online effect*. Crucially, despite $\tau^{2}$ is still the heterogeneity between effect sizes, now we need to fix $\tau^{2}$ considering that we included a moderator. In other terms, $\delta_i \sim \mathcal{N}(0, \tau_{r}^{2})$ where $\tau^2_r$ is the residual heterogeneity after including the moderator. We can describe our model using equation \@ref(eq:meta-regression-equations) according to the value of $X_{1i}$ (L = lab-based experiments, O = online experiments).
 
 \begin{align}
 \begin{gathered}
@@ -564,7 +555,7 @@ rma_table(res_tidy$res, res_tidy$notes, caption = get_caption())
 
 ### Meta-regression with a numerical moderator
 
-The same approach can be used for a continuous predictor. For example, we can simulate that the average participant's age within each study could explain part of the observed heterogeneity. Now the $X_1$ is a continuous predictor representing the average age for each study and $\beta_1$ is the effect size increase for a unit increase (i.e., 1 year) of average age. Sometimes guessing a plausible $\beta_1$ value with a continuous predictor is not straightforward. A first strategy could be to use values estimated from the literature. Another approach consists in setting up the model and simulating several expected $d_i$ and calculating the range of simulated values. A third possibility is fixing the proportion of explained heterogeneity calculating the $\beta_1$ value accordingly. As in standard regression analysis, we can use the $R^2$ statistic to describe the amount of heterogeneity explained by the included moderators. Equation \@ref(eq:rsquared) reports how to calculate the $R^2$ for a meta-regression model. The $\tau^2_{r}$ is the residual heterogeneity after considering the moderators and $\tau^2_{f}$ is the heterogeneity estimated without considering the moderators. In the next sections, we will present an example of the simulation-based and the $R^2$ based approaches.
+The same approach can be used for a continuous predictor. For example, we can simulate that the average participant's age within each study could explain part of the observed heterogeneity. Now the $X_1$ is a continuous predictor representing the average age for each study and $\beta_1$ is the effect size increase for a unit increase (i.e., 1 year) of average age. Sometimes guessing a plausible $\beta_1$ value with a continuous predictor is not straightforward. A first strategy could be to use values estimated from the literature. Another approach consists in setting up the model and simulating several expected $y_i$ and calculating the range of simulated values. A third possibility is fixing the proportion of explained heterogeneity calculating the $\beta_1$ value accordingly. As in standard regression analysis, we can use the $R^2$ statistic to describe the amount of heterogeneity explained by the included moderators. Equation \@ref(eq:rsquared) reports how to calculate the $R^2$ for a meta-regression model. The $\tau^2_{r}$ is the residual heterogeneity after considering the moderators and $\tau^2_{f}$ is the heterogeneity estimated without considering the moderators. In the next sections, we will present an example of the simulation-based and the $R^2$ based approaches.
 
 \begin{align}
 \begin{aligned}
@@ -608,7 +599,7 @@ siml <- split(sim, sim$b1)
 plausible_b <- siml[[1]] |> 
   ggplot(aes(y = yi, x = age)) +
   geom_point(alpha = 0.5) +
-  ylab(latex2exp::TeX("$d_i$")) +
+  ylab(latex2exp::TeX("$y_i$")) +
   xlab("Age") +
   ggtitle(TeX("$\\beta_1 = 0.1$")) +
   #ggthemes::theme_par(base_size = 15) +
@@ -619,7 +610,7 @@ plausible_b <- siml[[1]] |>
 implausible_b <- siml[[2]] |> 
   ggplot(aes(y = yi, x = age)) +
   geom_point(alpha = 0.5) +
-  ylab(latex2exp::TeX("$d_i$")) +
+  ylab(latex2exp::TeX("$y_i$")) +
   xlab("Age") +
   ggtitle(TeX("$\\beta_1 = 0.7$")) +
   ggthemes::theme_par(base_size = 15) +
@@ -695,7 +686,7 @@ ggplot() +
   geom_point(data = sim, 
              aes(x = age, y = yi, size = wi),
              show.legend = FALSE) +
-  ylab(latex2exp::TeX("$d_i$")) +
+  ylab(latex2exp::TeX("$y_i$")) +
   xlab("Age") +
   theme_paper()
 ```
@@ -844,7 +835,7 @@ heterogeneity. The rest of the Figure follows the same logic as Figure \@ref(fig
 
 (ref:res-meta-reg-numerical-r2) Summary of the *random-effects* model fixing the $R^{2}$ value. The `intercept` is the effect size for the average `age` (given that age is mean-centered). The `age0` parameter is the slope between `age` and the effect size interpreted as an increase in effect size for a unit increase in the average age. Other parameters are the same as described in Table \@ref(tab:res-random-effects) and \@ref(tab:res-meta-reg-dummy).
 
-(ref:plot-meta-reg-plausible-implausible) Scatter plots with marginal histograms for the range of simulated $d_i$ with two $\beta_1$ values. The x-axis depicts the average age of simulated studies and the y-axis depicts the simulated effect size. On the left, the majority of simulated values range between -1.5 and 1.5 thus $\beta_1 = 0.1$ can be considered a plausible value. On the right, ($\beta = 0.7$) values range between -10 to 10 that despite theoretically possible is highly implausible values in real meta-analysis for psychological data.
+(ref:plot-meta-reg-plausible-implausible) Scatter plots with marginal histograms for the range of simulated $y_i$ with two $\beta_1$ values. The x-axis depicts the average age of simulated studies and the y-axis depicts the simulated effect size. On the left, the majority of simulated values range between -1.5 and 1.5 thus $\beta_1 = 0.1$ can be considered a plausible value. On the right, ($\beta = 0.7$) values range between -10 to 10 that despite theoretically possible is highly implausible values in real meta-analysis for psychological data.
 
 (ref:plot-meta-reg-numerical-r2) Meta-regression results for the *random-effects model* with a numerical moderator. Each effect size is represented with a black dot where the dimension represents the weight according to the inverse of the precision. The line represents the estimated meta-regression slope with the 95% confidence interval (grey bands).
 
