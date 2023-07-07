@@ -40,7 +40,7 @@ tablelist         : no
 footnotelist      : no
 classoption       : "man"
 numbersections    : true
-nocite: | 
+nocite: |
   @r-lang
 header-includes:
   - \usepackage{setspace}
@@ -137,7 +137,7 @@ $s_{C}$).}
 
 The first step of a meta-analysis is to extract information from included studies. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures [see @Lakens2013-eq for an overview], such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's $d$ [@Cohen1988-ad] or the Pearson correlation coefficient $\rho$ which could be calculated using the associated sample estimator *r* are commonly used to compare heterogeneous outcome variables^[\color{red} When using bounded effect size indexes such as the Pearson correlation, Fisher's *z* transformation is commonly used[@Borenstein2009-mo, pp. 41-43] \color{black}]. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing using (UMD, unstandardized mean difference).
 
-As reported in the previous section, beyond the effect size of each study, we need to assign a weight according to the precision. For this reason, we need to calculate the sampling variability of the effect size or the raw measure that will represent the estimation precision. Each raw or standardized effect size measure (e.g., raw mean difference, Cohen's $d$, and Pearson's correlation) has a different formula to calculate the sampling variability. The idea is to choose the appropriate measure considering the study design (e.g., between vs. within-subjects) and available information and find the proper formula to compute the sampling variability. In addition, there are formulas and approaches to convert from one effect size measure to another [@Borenstein2009-mo; @Lipsey2001-vp; @Lakens2013-eq].^[See also the blog post by James Pustejovsky ([link](https://www.jepusto.com/alternative-formulas-for-the-smd/)) for a general method to compute the sampling variability for standardized mean difference measures.] Usually, the effect size sampling variability depends mainly on the sample size that determines the weight assigned during the meta-analytic estimation.
+As reported in the previous section, beyond the effect size of each study, we need to assign a weight according to the precision. For this reason, we need to calculate the sampling variability of the effect size or the raw measure that will represent the estimation precision. Each raw or standardized effect size measure (e.g., raw mean difference, Cohen's $d$, and Pearson's correlation) has a different formula to calculate the sampling variability. The idea is to choose the appropriate measure considering the study design (e.g., between vs. within-subjects) and available information and find the proper formula to compute the sampling variability. In addition, there are formulas and approaches to convert from one effect size measure to another [@Borenstein2009-mo; @Lipsey2001-vp; @Lakens2013-eq].^[See also the blog post by James Pustejovsky ([www.jepusto.com/alternative-formulas-for-the-smd](https://www.jepusto.com/alternative-formulas-for-the-smd/)) for a general method to compute the sampling variability for standardized mean difference measures.] Usually, the effect size sampling variability depends mainly on the sample size that determines the weight assigned during the meta-analytic estimation.
 
 ### Equal vs fixed vs random-effects model
 
@@ -201,7 +201,7 @@ library(metafor) # for meta-analysis models fitting
 seed <- 2023 # general seed for all simulations
 ```
 
-Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the *two-level*, *fixed,* and *random-effects* models. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. \color{red} There are different simulation approaches to meta-analysis concerning how to generate study-level or participant-level data. In simulation studies where the purpose is not evaluating effect size estimators, it is convenient to simulate unstandardized effect size measures (e.g., UMD). Firstly the estimator is unbiased thus not requiring small sample correction [e.g., @Hedges1989-ip; @Hedges1981-za]. Then the effect size and the sampling variance are independent. Similar to the simulation approach by Viechtbauer [@Viechtbauer2005-yh; @Viechtbauer2007-tq] the *experimental* group ($T$) and *control* groups $C$ are sampled from normal distributions respectively $T_i \sim \mathcal{N}(\Delta, 1)$ and $C_i \sim \mathcal{N}(0, 1)$ where $\Delta$ is the unstandardized mean difference (UMD). The UMD and the sampling variance are calculated using Equations \@ref(eq:effsize) and \@ref(eq:effsizevar) where $y$ is the sample estimator of $\Delta$. \color{black}
+Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the *two-level*, *equal,* and *random-effects* models. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. \color{red} There are different simulation approaches to meta-analysis concerning how to generate study-level or participant-level data. In simulation studies where the purpose is not evaluating effect size estimators, it is convenient to simulate unstandardized effect size measures (e.g., unstandardized mean difference, UMD). Firstly the estimator is unbiased thus not requiring small sample correction [e.g., @Hedges1989-ip; @Hedges1981-za]. Then the effect size and the sampling variance are independent. Similar to the simulation approach by Viechtbauer [@Viechtbauer2005-yh; @Viechtbauer2007-tq] the *experimental* group ($T$) and *control* groups $C$ are sampled from normal distributions respectively $T_i \sim \mathcal{N}(\Delta, 1)$ and $C_i \sim \mathcal{N}(0, 1)$ where $\Delta$ is the unstandardized mean difference (UMD). The UMD and the sampling variance are calculated using Equations \@ref(eq:effsize) and \@ref(eq:effsizevar) where $y$ is the sample estimator of $\Delta$. \color{black}
 
 \color{red}
 
@@ -310,7 +310,7 @@ notation_table |>
 
 ## Equal-effects model
 
-The most basic model to simulate is the *equal-effects model* (FE). As reported in the previous sections, the *equal-effects model* assumes the presence of a single true effect ($\theta$) and the observed variability is because each effect size is an imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \@ref(eq:equal-effects-model1) and \@ref(eq:equal-effects-model2) depicts the *equal-effects* model.}
+The most basic model to simulate is the *equal-effects model* (EE). As reported in the previous sections, the *equal-effects model* assumes the presence of a single true effect ($\theta$) and the observed variability is because each effect size is an imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \@ref(eq:equal-effects-model1) and \@ref(eq:equal-effects-model2) depicts the *equal-effects* model.}
 
 \begin{align}
 \begin{gathered}
@@ -338,7 +338,7 @@ theta <- 0.3 # real effect size
 
 sim <- make_data(k = k, nt = n, nc = n, es = theta)
 sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim) # simulated data
-res <- rma(yi = yi, vi = vi, method = "FE", data = sim)
+res <- rma(yi = yi, vi = vi, method = "EE", data = sim)
 ```
 
 \color{red}
@@ -523,7 +523,7 @@ rma_table(res_tidy$res, res_tidy$notes, caption = get_caption())
 
 ## Meta-regression {#metareg}
 
-From a linear regression perspective, both the FE and the RE models can be seen as *intercept-only* models where only the mean (i.e., the linear regression intercept) is estimated Borenstein et al. (2009). As reported in the meta-analysis introduction, the between-study heterogeneity usually represents the true variability of the effect due to differences among primary studies. A natural extension of the *intercept-only* analysis is a model that includes variables (i.e., *moderators*) that could explain the observed heterogeneity among effect sizes. For example, a group of studies could use a particular memory task where the expected effect is higher than another. In this way, considering the
+From a linear regression perspective, both the EE and the RE models can be seen as *intercept-only* models where only the mean (i.e., the linear regression intercept) is estimated Borenstein et al. (2009). As reported in the meta-analysis introduction, the between-study heterogeneity usually represents the true variability of the effect due to differences among primary studies. A natural extension of the *intercept-only* analysis is a model that includes variables (i.e., *moderators*) that could explain the observed heterogeneity among effect sizes. For example, a group of studies could use a particular memory task where the expected effect is higher than another. In this way, considering the
 type of task will explain part of the observed heterogeneity as in standard regression models. Figures \@ref(fig:img-metaregression-bin) and \@ref(fig:img-metaregression-num) depict a random-effects meta-regression model for a categorical and numerical predictor.
 
 ```{r img-metaregression-bin, echo = FALSE, fig.cap=get_caption(), fig.asp=1}
@@ -548,7 +548,7 @@ y_i = \beta_0 + \delta_i + \beta_1 X_{1_i} + \epsilon_i
 \begin{align}
 \begin{gathered}
 y_{iL} = \beta_0 + \delta_i + \beta_1 \times 0 + \epsilon_i \\
-d_{iO} = \beta_0 + \delta_i + \beta_1 \times 1 + \epsilon_i
+y_{iO} = \beta_0 + \delta_i + \beta_1 \times 1 + \epsilon_i
 (\#eq:meta-regression-equations)
 \end{gathered}
 \end{align}
@@ -721,7 +721,7 @@ ggplot() +
 
 The previous simulation examples can be easily implemented for multiple purposes. For example, we can use different effect sizes and variance estimators when using the `sim_study()` function to check the impact on the fitted meta-analysis model. However, one of the most critical applications is estimating the power of a specific statistical model.
 
-As explained in the introduction, there are several approaches and tools to estimate the power of *fixed* and *random-effects models* [see @Borenstein2009-mo, Chapter 29; @Harrer2019-rl, Chapter 14]. These methods are easy to implement but made strong assumptions, such as the homogeneity of sample size, and did not consider the uncertainty in estimating $\tau^{2}$. Jackson and colleagues [-@Jackson2017-dv]
+As explained in the introduction, there are several approaches and tools to estimate the power of *equal* and *random-effects models* [see @Borenstein2009-mo, Chapter 29; @Harrer2019-rl, Chapter 14]. These methods are easy to implement but made strong assumptions, such as the homogeneity of sample size, and did not consider the uncertainty in estimating $\tau^{2}$. Jackson and colleagues [-@Jackson2017-dv]
 partially solve the issue by developing an interesting method that takes into account the uncertainty in estimating $\tau^{2}$ without using simulations. However, only Monte Carlo simulations can consider complex scenarios and extra parameters. 
 
 A general Monte Carlo simulation for the power analysis can be implemented with the following steps:
@@ -818,6 +818,8 @@ The code to reproduce simulations, figures and tables can be found on Open Scien
 
 ### Supplemental Material {-}
 
+The supplementary materials can be also found on the Open Science Framework repository (https://osf.io/54djn/)
+
 ### Prior versions {-}
 
 The manuscript preprint has been uploaded on PsyArXiv [https://psyarxiv.com/br6vy/](https://psyarxiv.com/br6vy/)
@@ -837,12 +839,11 @@ The manuscript preprint has been uploaded on PsyArXiv [https://psyarxiv.com/br6v
 
 (ref:notation-tab) Overview of math notation and the corresponding variables names used in the code examples.
 
-(ref:res-equal-effects) \color{red} Summary of the simulated equal-effects model. The only estimated parameter is the average effect* $\theta_{f}$ *with the standard error,
-95% confidence interval, and the Wald z-test. The z-test evaluates the null hypothesis that the real effect equals zero.\color{black}
+(ref:res-equal-effects) \color{red} Summary of the simulated equal-effects model. The only estimated parameter is the average effect $\theta$ ($\beta$) with the standard error, 95% confidence interval, and the Wald z-test. The z-test evaluates the null hypothesis that the real effect equals zero.\color{black}
 
 (ref:equal-effects-high-low-precision) \color{red} Forest plots of two simulated *equal-effects models*. On the left, the simulated model has $nt,nc = 30$ for each included study while on the right the sample size for each study is $nt,nc = 500$. Given that the data were generated under a *equal-effects model*, when the sample size is high (on the right) each study is aligned on the real effect size because the error component ($\epsilon_{i}$) is almost entirely reduced. The average effect size is similar (depending on the random numbers generation) between the two scenarios while the estimation precision (the width of the black diamond) is narrower on the right. \color{black}
 
-(ref:res-random-effects) \color{red} Summary of the simulated random-effects model: Compared to the equal-effects model, there are more parameters. The $\beta$ is the average effect ($\theta_{r}$) with the standard error, 95% confidence interval, and the Wald z-test. The $\tau^{2}$ is the estimated heterogeneity and the $I^{2}$ (explained in Section \@ref(re-model)) represents the percentage of total variability due to between-study heterogeneity. \color{black}
+(ref:res-random-effects) \color{red} Summary of the simulated random-effects model: Compared to the equal-effects model, there are more parameters. The $\beta$ is the average effect ($\mu_{\theta}$) with the standard error, 95% confidence interval, and the Wald z-test. The $\tau^{2}$ is the estimated heterogeneity and the $I^{2}$ (explained in Section \@ref(re-model)) represents the percentage of total variability due to between-study heterogeneity. \color{black}
 
 (ref:random-effects-high-low-precision) \color{red} Forest plots of two simulated *random-effects model*s. On the left, the simulated model has $nt,nc = 30$ for each included study, while on the right, the sample size for each study is $nt,nc = 500$. Compared to Figure \@ref(fig:equal-effects-high-low-precision), data were generated under a *random-effects model*. The estimated average effect is similar between the two scenarios regarding average effect and precision. However, compared to the *equal-effects* simulation, increasing the sample size of primary studies only affects the precision without reducing the true heterogeneity (i.e., $\tau^{2} \neq 0$). \color{black}
 
