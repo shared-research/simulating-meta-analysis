@@ -51,6 +51,13 @@ The project is organized as follows:
 - `objects`: contains the result of objects created by the `scripts/`
   scripts.
 
+## Testing
+
+The custom functions are tested within the `scripts/test.R` script. The
+idea is to use the same simulation codes of the paper increasing the $k$
+and $n$ values and check the recovery of simulated parameters using the
+`check_sim()` function.
+
 # Session
 
 ## Session info
@@ -63,13 +70,13 @@ The project is organized as follows:
     #> collate: English_United States.utf8
     #> ctype: English_United States.utf8
     #> tz: Europe/Berlin
-    #> pandoc: 2.19.2 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
+    #> pandoc: 3.1.1 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ## Packages
 
 - `dplyr` (1.1.1)
 - `tidyr` (1.3.0)
-- `ggplot2` (3.4.1)
+- `ggplot2` (3.4.2)
 - `metafor` (4.0.0)
 - `MASS` (7.3.58.2)
 - `cli` (3.6.0)
@@ -89,9 +96,10 @@ The project is organized as follows:
 - `bookdown` (0.33)
 - `broom` (1.0.4)
 - `renv` (0.17.2)
-- `rsvg` (2.4.0)
 - `stringr` (1.5.0)
+- `simulatingMeta` (1.0.0)
 - `sessioninfo` (1.2.2)
+- `cowplot` (1.1.1)
 - `distributional` (0.3.2)
 - `ggdist` (3.2.1)
 - `tidyverse` (2.0.0)

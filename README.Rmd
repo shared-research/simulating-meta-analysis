@@ -7,12 +7,15 @@ output: github_document
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  message = FALSE,
+  warning = FALSE,
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
 
 devtools::load_all()
+pkgs <- simulatingMeta:::.get_packages()
 ```
 
 # Understanding meta-analysis through data simulation with applications to power analysis
@@ -44,6 +47,10 @@ The project is organized as follows:
   - `scripts\r-img.R`: create the paper figures. Figures that are not created in this script using `ggplot2` are created with the open-source program [*Inkscape*](https://inkscape.org/) and contained in the `../img/` folders.
 - `objects`: contains the result of objects created by the `scripts/` scripts.
 
+## Testing
+
+The custom functions are tested within the `scripts/test.R` script. The idea is to use the same simulation codes of the paper increasing the $k$ and $n$ values and check the recovery of simulated parameters using the `check_sim()` function.
+
 # Session
 
 ## Session info
@@ -60,7 +67,6 @@ paste0(
 ## Packages
 
 ```{r, echo = FALSE, message=FALSE, warning=FALSE, results='asis'}
-pkgs <- get_packages()
 sprintf("- `%s` (%s)", pkgs$pkg, pkgs$version) |> 
   cat(sep = "\n")
 ```
