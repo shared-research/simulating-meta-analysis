@@ -4,13 +4,16 @@
 \alias{check_sim}
 \title{check_sim}
 \usage{
-check_sim(fixed, results)
+check_sim(fixed, results, name = NULL)
 }
 \arguments{
 \item{fixed}{named list of population level parameters}
 
 \item{results}{named list of simulation results}
+
+\item{name}{optional name for the simulation to be displayed}
 }
 \description{
-check_sim
+The function compare a (named) list of simulation parameters with a (named) list of simulations results
+computing the absolute value of the difference
 }

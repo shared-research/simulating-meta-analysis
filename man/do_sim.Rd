@@ -4,12 +4,10 @@
 \alias{do_sim}
 \title{do_sim}
 \usage{
-do_sim(k, theta, tau2, navg, nmin, nsim, alpha = 0.05, summary = TRUE)
+do_sim(k, mu, tau2, navg, nmin, nsim, alpha = 0.05, summary = TRUE)
 }
 \arguments{
 \item{k}{number of studies}
-
-\item{theta}{population level effect size}
 
 \item{tau2}{heterogeneity}
 
@@ -22,6 +20,8 @@ do_sim(k, theta, tau2, navg, nmin, nsim, alpha = 0.05, summary = TRUE)
 \item{alpha}{the alpha level}
 
 \item{summary}{logical indicating if the simulation should be summarized using the \code{summary_sim} function.}
+
+\item{theta}{population level effect size}
 }
 \value{
 a dataframe

@@ -4,26 +4,24 @@
 \alias{sim_study}
 \title{sim_study}
 \usage{
-sim_study(theta, nt, nc = NULL, hedges = TRUE, aggregate = TRUE)
+sim_study(es, nt, nc = NULL, aggregate = TRUE)
 }
 \arguments{
-\item{theta}{number indicating the population level effect size.}
+\item{es}{number indicating the population level effect size.}
 
-\item{nt}{number indicating the number of participants for the treated group.}
+\item{nt}{number indicating the number of participants for the experimental group.}
 
 \item{nc}{number indicating the number of participants for the control group. If \code{NULL} the value assigned to \code{nt} will be used.}
 
-\item{hedges}{logical. Whether the Hedges' correction should be applied. Default to \code{TRUE}.}
-
-\item{aggregate}{logical. Whether the participants data need to be aggregated calculating the effect size and variance. Default to \code{TRUE}.}
+\item{aggregate}{logical. Whether the participants data need to be aggregated calculating the effect size and variance or not. Default to \code{TRUE}.}
 }
 \value{
-a dataframe
+dataframe
 }
 \description{
 Simulate a single study based on the input parameters and return a dataframe with effect size and variance or raw data.
 }
 \examples{
-sim_study(0.3, 30, 30, TRUE, TRUE) # return aggregated data
-sim_study(0.3, 30, 30, TRUE, TRUE) # return participants data
+sim_study(0.3, 30, 30, aggregate = TRUE) # return aggregated data
+sim_study(0.3, 30, 30, aggregate = FALSE) # return participants data
 }
