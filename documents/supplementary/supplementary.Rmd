@@ -9,6 +9,7 @@ author:
 output:
   bookdown::pdf_document2:
     toc: true
+    toc_depth: 1
     latex_engine: xelatex
 header-includes:
   - \setcounter{table}{0} 
@@ -33,6 +34,7 @@ header-includes:
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
+  - \newcommand{\rev}[1]{\textcolor{red}{#1}}
 ---
 
 ```{r setup, include = FALSE}
@@ -47,6 +49,11 @@ library(dplyr)
 library(tidyr)
 library(here)
 devtools::load_all() # loading all custom functions
+
+# theme for plots
+theme_paper <- function(base_size = 15){
+  ltxplot::theme_latex(base_size = base_size)
+}
 ```
 
 ```{r funs, include=FALSE}
@@ -57,8 +64,22 @@ simfuns <- get_funs(here("R", "sim-utils.R"))
 
 # Introduction
 
-In the main paper, we presented the basic meta-analysis models and simulations. However, in real-world meta-analyses, it is common to find complex data structures such as multilevel and multivariate. As reported in the paper, there could be a different source of dependencies when each study reports multiple effect sizes. Rephrasing the [@Cheung2015-bw, pp. 121--122] taxonomy, the first type of dependency, which we call *multilevel* dependency, arises when multiple independent experiments are associated with the same study. Level 1 (i.e., participants' level) is different, but the effects are likely correlated because the same research group conducted the experiments. The second type of dependency, *multivariate* dependency, arises when multiple effects are collected on the same pool of participants within each study. Now sampling errors within each study are correlated because the same participant is tested multiple times. Finally, we have a dependency on multiple effects at the population level. Two outcomes could be correlated (e.g., the type of
-memory tasks) even if the pool of participants is different. The first two types of dependency are the reasons to use a multilevel and multivariate model. The following sections will show two examples to simulate these complex data structures.
+In the main paper, we presented the most straightforward situation for a meta-analysis when each included study contributes with a single effect size. However, in real-world meta-analyses, it is common to find complex data structures such as multilevel and multivariate. There are numerous sources of dependency for a meta-analysis [@Cheung2014-fg; @Cheung2015-bw, pp. 121-122]. 
+
+The first type of dependency (*multilevel*) consists of multiple effect sizes from independent participants. Despite being collected with different participants, effect sizes from the same study could be correlated. We obtain a multilevel data structure with independent effect sizes in the same study. Figure \@ref(fig:img-multilevel) depict the general idea of a *multivariate* model. There are multiple ways to model this data structure [see @Cheung2014-fg for an overview]. Still, the most common way is to use a *multilevel meta-analysis model,* considering the heterogeneity between and within studies. The standard *random-effects* (but also the *equal-effects model*) model is also called a *two-level* model because it combines data after aggregating the participants-level (*first-level*) data. The *three-level* model is commonly used to manage the multilevel data structure [@Cheung2014-fg; @Cheung2019-po]. Compared to the *two-level* model, the *three-level* model estimates two heterogeneity parameters ($\tau^{2}$ and $\omega^{2}$), one for the heterogeneity between studies and the other for the heterogeneity within studies.
+
+A second type of dependency (*multivariate*) consists of multiple effect sizes collected from the same pool of participants. Figure \@ref(fig:img-multivariate) depict the general idea of a *multivariate* model. For example, when using two cognitive tasks on the same pool of participants. This is commonly known as *multivariate meta-analysis* because the effect sizes sampling errors are correlated given that participants are assessed multiple times. A *multivariate meta-analysis model* could be used to
+consider the correlation between sampling errors.
+
+A third type of dependency arises when true effect sizes are correlated at the population level [@Cheung2015-bw, pp. 121-122]. For example, two different memory tasks could be correlated because the latent psychological constructs are intrinsically correlated. This correlation is present even when other groups of participants perform the two memory tasks (i.e., no *multivariate* dependency) or are administered by different researchers (i.e., no *multilevel* dependency). This type of dependency could be managed by estimating the correlation between outcomes using a *multivariate random-effects model* [@Cheung2015-bw, pp. 127-130]. Figures \@ref(fig:img-multilevel) and \@ref(fig:img-multivariate) depict the conceptual idea of *multilevel* and *multivariate* models. The following sections will show two examples to simulate these complex data structures.
+
+```{r img-multilevel, echo=FALSE, out.width="80%", fig.cap = get_caption()}
+knitr::include_graphics("img/multilevel.pdf")
+```
+
+```{r img-multivariate, echo=FALSE, out.width="80%", fig.cap = get_caption()}
+knitr::include_graphics("img/multivariate.pdf ")
+```
 
 # Simulations
 
@@ -68,7 +89,7 @@ library(tidyr)
 seed <- 2023 # random seed for simulations
 ```
 
-In the paper, we used the `mapply()` function, a particularly useful tool in R, to apply the same function (in parallel) with multiple parameters using multiple vectors. In our case, the `sim_study()` function has several parameters (`theta`, `nt`, among others), and we can apply the function multiple times with a combination of parameters. It can be considered essentially a `for` loop but more compact and less verbose.
+In the paper, we used the `mapply()` function, a particularly useful tool in R, to apply the same function (in parallel) with multiple parameters using multiple vectors. In our case, the `sim_study()` function has several parameters (`es`, `nt`, among others), and we can apply the function multiple times with a combination of parameters. It can be considered essentially a `for` loop but more compact and less verbose.
 
 The following code illustrates the idea of `mapply()` compared to a standard `for` loop. The sim data set contains our pool of $k$ studies, and we want to apply the `sim_study()` function to each dataset row. We can use a `for` loop that is verbose but more explicit or the `mapply()` function that is more compact but less explicit. The computation time and results `for` the two approaches are equivalent, given the appropriate setup.
 
@@ -78,14 +99,14 @@ The following code illustrates the idea of `mapply()` compared to a standard `fo
 # preallocate for speed (not necessary with mapply)
 res <- vector(mode = "list", length = nrow(sim))
 for(i in 1:length(res)){
-  res[[i]] <- sim_study(theta = sim$theta[i], nc = sim$nc[i], nt = sim$nt[i])
+  res[[i]] <- sim_study(theta = sim$es[i], nc = sim$nc[i], nt = sim$nt[i])
 }
 
 # using mapply
-sim <- mapply(sim_study, sim$theta, sim$nc, sim$nt)
+sim <- mapply(sim_study, sim$es, sim$nc, sim$nt)
 
 # using sim_studies (with mapply inside)
-sim <- sim_studies(sim$theta, sim$nc, sim$nt, data = sim)
+sim <- sim_studies(sim$es, sim$nc, sim$nt, data = sim)
 ```
 
 # Three-level model
@@ -94,18 +115,33 @@ Compared to the standard two-level model, the three-level model estimates anothe
 
 \begin{align}
 \begin{gathered}
-d_{ij} = \theta_r + \theta_i + \theta_{ij} + \epsilon_{ij} \\
-\theta_i \sim N(0, \tau^2) \\
-\theta_{ij} \sim N(0, \omega^2) \\
-\epsilon_{ij} \sim N(0,\sigma^2_i)
-(\#eq:three-level-model)
+y_{ij} = \mu_{\theta} + \delta_i + \zeta_{ij} + \epsilon_{ij}
+(\#eq:three-level-model1)
 \end{gathered}
 \end{align}
 
-The notation suggests that each effect size belongs to an experiment (effect size) ($j$) nested within a study ($i$). The variability between studies (level 3) is handled by the $\tau^{2}$ parameter and the variability within studies (level 2) is handled by the $\omega^{2}$ parameter. Practically, each study is composed of the average effect size $\theta_{r}$ plus a study-specific adjustment determined by $\tau^{2}$. Then each effect size is composed of the study-specific
-effect ($\theta_{r} + \theta_{i}$) plus the adjustment determined by $\omega^{2}$ thus $\theta_{r} + \theta_{i} + \theta_{\text{ij}}$. The number of effect sizes within each study will determine the estimation precision of the $\omega^{2}$ parameter and the number of studies will determine the estimation precision of the $\tau^{2}$ parameter. The
-relationship between $\tau^{2}$ and $\omega^{2}$ can be expressed using the intraclass correlation coefficient (ICC) expressed as $ICC = \frac{\tau^{2}}{\tau^{2} + \omega^{2}}$ representing the proportion of total heterogeneity associated with level 2 or level 3. For example, an ICC of 0.5 suggests that 50% of heterogeneity is caused by between-studies variability. On the extreme, an ICC close to 1 suggests that the between-studies variability causes most heterogeneity
-(i.e., the effect sizes within each study are very similar).
+\begin{align}
+\begin{gathered}
+\delta_i\sim N(0, \tau^2)
+(\#eq:three-level-model2)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\zeta_{ij} \sim N(0, \omega^2)
+(\#eq:three-level-model3)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\epsilon_{ij} \sim N(0,\sigma_{\epsilon_i}^{2})
+(\#eq:three-level-model4)
+\end{gathered}
+\end{align}
+
+The notation suggests that each effect size belongs to an experiment (effect size) ($j$) nested within a study ($i$). The variability between studies (level 3) is handled by the $\tau^{2}$ parameter (see Equation \@ref(eq:three-level-model2) and the variability within studies (level 2) is handled by the $\omega^{2}$ parameter (see Equation \@ref(eq:three-level-model3)). Practically, each study is composed of the average effect size $\mu_{\theta}$ plus a study-specific adjustment determined by $\tau^{2}$. Then each effect size is composed of the study-specific effect ($\mu_{\theta} + \delta_{i}$) plus the adjustment determined by $\omega^{2}$ thus $\mu_{\theta} + \delta_{i} + \zeta_{ij}$. As in the two-level meta-analysis model there is also the random error component $\sigma_{\epsilon_i}^{2}$ (see Equation \@ref(eq:three-level-model4)). The number of effect sizes within each study will determine the estimation precision of the $\omega^{2}$ parameter and the number of studies will determine the estimation precision of the $\tau^{2}$ parameter. The relationship between $\tau^{2}$ and $\omega^{2}$ can be expressed using the intraclass correlation coefficient (ICC) expressed as $ICC = \frac{\tau^{2}}{\tau^{2} + \omega^{2}}$ representing the proportion of total heterogeneity associated with level 2 or level 3 [see @Cheung2014-fg]. For example, an ICC of 0.5 suggests that 50% of heterogeneity is caused by between-studies variability. On the extreme, an ICC close to 1 suggests that the between-studies variability causes most heterogeneity (i.e., the effect sizes within each study are very similar).
 
 ```{r sim-multilevel}
 set.seed(seed)
@@ -115,31 +151,31 @@ tau2 <- 0.3 # heterogeneity between studies
 omega2 <- 0.1 # heterogeneity within studies
 icc <- tau2 / (tau2 + omega2) # real ICC
 n <- 30 # sample size for each group, within each study
-theta_r <- 0.3 # real average effect size
+mu <- 0.3 # real average effect size
 
-theta_i <- rnorm(i, 0, sqrt(tau2))
-theta_ij <- rnorm(i*j, 0, sqrt(omega2))
+delta_i <- rnorm(i, 0, sqrt(tau2))
+zeta_ij <- rnorm(i*j, 0, sqrt(omega2))
 
 sim <- tidyr::expand_grid(
   study = 1:i,
   effect = 1:j,
   nt = n,
   nc = n,
-  theta_r = theta_r
+  mu = mu
 )
 
-sim$theta_i <- theta_i[sim$study]
-sim$theta_ij <- theta_ij
+sim$delta_i <- delta_i[sim$study]
+sim$zeta_ij <- zeta_ij
 
 head(sim)
 ```
 
-Each study $i$ is repeated $j$ times^[To create a more realistic simulation, the number of effect sizes for each paper could be heterogeneous (e.g., sampled from a Poisson distribution)] along the $\theta_{i}$ while each effect has a unique $\theta_{\text{ij}}$. We can use the same approach as the main paper using the `sim_studies()` function.
+Each study $i$ is repeated $j$ times^[To create a more realistic simulation, the number of effect sizes for each paper could be heterogeneous (e.g., sampled from a Poisson distribution)] along the $\delta_{i}$ while each effect has a unique $\zeta_{\text{ij}}$. We can use the same approach as the main paper using the `sim_studies()` function.
 
 ```{r}
 set.seed(seed)
-sim$theta_r_i_ij <- sim$theta_r + sim$theta_i + sim$theta_ij
-sim <- sim_studies(theta = sim$theta_r_i_ij, nt = sim$nt, nc = sim$nc, data = sim)
+sim$es <- sim$mu + sim$delta_i + sim$zeta_ij
+sim <- sim_studies(es = sim$es, nt = sim$nt, nc = sim$nc, data = sim)
 ```
 
 Finally we fit a *three-level models* using the `rma.mv` from the `metafor` package. The syntax differs slightly from the rma function and is clearly explained here https://www.metafor-project.org/doku.php/analyses:konstantopoulos2011. The essential part is adding the nested random effect using the `random = ` argument specifying that the `study` variable is nested within the `study` variable with `~ 1|study/experiment`.
@@ -149,62 +185,86 @@ res <- rma.mv(yi, vi, random = ~1|study/effect, data = sim)
 summary(res)
 ```
 
-As explained above, the model estimates the average effect $\theta_{r}$ and the two heterogeneity parameters. To create a more realistic simulation, we can create some variability in the number of experiments within the same paper, similar to what we did for the number of participants in the main paper. We simulated a three-level model, but it is possible to extend to *n* levels for a more complicated nested structure. In this case, we need more heterogeneity parameters (i.e., more nested "adjustments"), but the overall simulation setup is the same.
+As explained above, the model estimates the average effect $\mu_{\theta}$ and the two heterogeneity parameters. To create a more realistic simulation, we can create some variability in the number of experiments within the same paper, similar to what we did for the number of participants in the main paper. We simulated a three-level model, but it is possible to extend to *n* levels for a more complicated nested structure. In this case, we need more heterogeneity parameters (i.e., more nested "adjustments"), but the overall simulation setup is the same.
 
 # Multivariate model
 
 Compared to a standard two-level random-effects model, the *multivariate model* must consider the correlation between effect sizes collected on the same pool of participants. Authors should report these correlations, but often we need to guess a plausible value for the meta-analysis. Compared to the *two-level* and *three-level* models, we now have multiple outcomes ($p$).
 
-Following the example of the main paper, we have three memory tests collected on the same pool of participants. For this reason we have three real effects ($\theta_{r_{1}}$, $\theta_{r_{2}}$ and $\theta_{r_{3}}$), three heterogeneity ($\tau^2_1$, $\tau^2_2$ and $\tau^2_3$) and the population-level correlations between these outcomes ($\rho_{12}$, $\rho_{13}$ and $\rho_{23}$). Moreover, the sampling errors ($\epsilon_i$) are now correlated; thus each study will have three variances for each outcome ($\sigma^2_1$, $\sigma^2_2$, and $\sigma^2_3$), and the correlations between sampling errors ($\rho_{s12}$, $\rho_{s13}$ and $\rho_{s23}$)^[We used the subscript $s$ for sampling errors to distinguish between between-outcomes correlations and correlations between sampling errors]. Equation \@ref(eq:multivariate-model) formalize the multivariate model for a single study $i$ with three outcomes. The random-effects adjustments ($\theta_i$) to the overall effect and sampling errors are now sampled from a multivariate normal distribution, respectively $\theta_i \sim \mathcal{MVN}(0, \mathrm{T}^2)$ and $\theta_i \sim \mathcal{MVN}(0, \mathrm{V}^2)$.
+Following the example of the main paper, we have three memory tests collected on the same pool of participants. For this reason we have three real effects ($\mu_{\theta_{1}}$, $\mu_{\theta_{2}}$ and $\mu_{\theta_{3}}$), three heterogeneity ($\tau^2_1$, $\tau^2_2$ and $\tau^2_3$) and the population-level correlations between these outcomes ($\rho_{12}$, $\rho_{13}$ and $\rho_{23}$). Moreover, the sampling errors ($\epsilon_i$) are now correlated; thus each study will have three sampling variances for each outcome ($\sigma_{\epsilon_1}^{2}$, $\sigma_{\epsilon_1}^{2}$, and $\sigma_{\epsilon_1}^{2}$), and the correlations between sampling errors ($\rho_{s12}$, $\rho_{s13}$ and $\rho_{s23}$)^[We used the subscript $s$ for sampling errors to distinguish between between-outcomes correlations and correlations between sampling errors]. Equations \@ref(eq:multivariate-model1), \@ref(eq:multivariate-model2), \@ref(eq:multivariate-model3), \@ref(eq:multivariate-model4) \@ref(eq:multivariate-model5) formalize the multivariate model for a single study $i$ with three outcomes. The random-effects adjustments ($\theta_i$) to the overall effect and sampling errors are now sampled from a multivariate normal distribution, respectively $\theta_i \sim \mathcal{MVN}(0, \mathrm{T}^2)$ and $\theta_i \sim \mathcal{MVN}(0, \mathrm{V}^2)$.
 
 \begin{align}
 \begin{gathered}
 \begin{bmatrix}
-d_{i1} \\
-d_{i2} \\
-d_{i3}
+y_{1_i} \\
+y_{2_i} \\
+y_{3_i}
 \end{bmatrix} 
 =
 \begin{bmatrix}
-\theta_{1} \\
-\theta_{2} \\
-\theta_{3}
+\mu_{{\theta}_{1}} \\
+\mu_{{\theta}_{2}} \\
+\mu_{{\theta}_{3}}
 \end{bmatrix}
 +
 \begin{bmatrix}
-\theta_{i1} \\
-\theta_{i2} \\
-\theta_{i3}
+\delta_{1_i} \\
+\delta_{2_i} \\
+\delta_{3_i}
 \end{bmatrix}
 +
 \begin{bmatrix}
-\epsilon_{i1} \\
-\epsilon_{i2} \\
-\epsilon_{i3}
-\end{bmatrix} \\
-\begin{bmatrix}
-\theta_{i1} \\
-\theta_{i2} \\
-\theta_{i3}
+\epsilon_{1_i} \\
+\epsilon_{2_i} \\
+\epsilon_{3_i}
 \end{bmatrix}
-\sim \mathcal{MVN}(0, \mathrm{T}^2) \\
+(\#eq:multivariate-model1)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
 \begin{bmatrix}
-\epsilon_{i1} \\
-\epsilon_{i2} \\
-\epsilon_{i3}
+\delta_{1_i} \\
+\delta_{2_i} \\
+\delta_{3_i}
 \end{bmatrix}
-\sim \mathcal{MVN}(0, \mathrm{V}^2) \\
-\mathrm{T}^2 = \begin{bmatrix} 
-\tau_1^2 & & & \\ 
-\rho_{21}\tau_2\tau_1 & \tau_2^2 & & \\ 
+\sim \mathcal{MVN}(0, \mathrm{T})
+(\#eq:multivariate-model2)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\begin{bmatrix}
+\epsilon_{1_i} \\
+\epsilon_{2_i} \\
+\epsilon_{3_i}
+\end{bmatrix}
+\sim \mathcal{MVN}(0, \mathrm{V})
+(\#eq:multivariate-model3)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\mathrm{T} = \begin{bmatrix}
+\tau_1^2 & & & \\
+\rho_{21}\tau_2\tau_1 & \tau_2^2 & & \\
 \rho_{31}\tau_3\tau_1 & \rho_{32}\tau_3\tau_2 & \tau_3^2
-\end{bmatrix} \\
-\mathrm{V}^2 = \begin{bmatrix} 
-\sigma_1^2 & & & \\ 
-\rho_{s21}\sigma_2\sigma_1 & \sigma_2^2 & & \\ 
-\rho_{s31}\sigma_3\sigma_1 & \rho_{s32}\sigma_3\sigma_2 & \sigma_3^2
-\end{bmatrix} \\
-(\#eq:multivariate-model)
+\end{bmatrix}
+(\#eq:multivariate-model4)
+\end{gathered}
+\end{align}
+
+\begin{align}
+\begin{gathered}
+\mathrm{V} = \begin{bmatrix}
+\sigma^2_{\epsilon_1} & & & \\
+\rho_{s_{21}}\sigma_{\epsilon_2}\sigma_{\epsilon_1} & \sigma^2_{\epsilon_2} & & \\
+\rho_{s_{31}}\sigma_{\epsilon_3}\sigma_{\epsilon_1} & \rho_{s_{32}}\sigma_{\epsilon_3}\sigma_{\epsilon_2} & \sigma^2_{\epsilon_3}
+\end{bmatrix}
+(\#eq:multivariate-model5)
 \end{gathered}
 \end{align}
 
@@ -231,7 +291,7 @@ apply(multi_sim, 2, var) # variance
 cor(multi_sim) # correlation
 ```
 
-The previous code simulated a *compound symmetry* (CS) structure where all variances ($\tau^2$) and covariances ($\rho\tau_1\tau_2$) are the same. There could be different structures of the $T^2$ matrix that are clearly explained in the `metafor::rma.mv()` documentation (see https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects). For the sake of simplicity we will use the CS structure. We can use the `sim_T()` function that given the number of studies $k$, outcomes $p$, the vector of $\tau^2$ and the correlation $\rho$ generates the random-effect adjustments^[The function allow to specify heterogeneous $\tau^2$ values where the CS structure assume the same $\tau^2$ for each outcome. Using a fixed $\rho$ and different $\tau^2$ will create what `rma.mv()` calls a *heteroscedastic compound symmetric structure* thus a matrix where the correlation is the same between outcomes and each outcome has a different $\tau^2$ value].
+The previous code simulated a *compound symmetry* (CS) structure where all variances ($\tau^2$) and covariances ($\rho\tau_1\tau_2$) are the same. There could be different structures of the $T$ matrix that are clearly explained in the `metafor::rma.mv()` documentation (see https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects). For the sake of simplicity we will use the CS structure. We can use the `sim_T()` function that given the number of studies $k$, outcomes $p$, the vector of $\tau^2$ and the correlation $\rho$ generates the random-effect adjustments^[The function allow to specify heterogeneous $\tau^2$ values where the CS structure assume the same $\tau^2$ for each outcome. Using a fixed $\rho$ and different $\tau^2$ will create what `rma.mv()` calls a *heteroscedastic compound symmetric structure* thus a matrix where the correlation is the same between outcomes and each outcome has a different $\tau^2$ value].
 
 ```{r, echo = FALSE, results='asis'}
 print_fun(simfuns$sim_T)
@@ -253,7 +313,7 @@ from $k$ studies will create a block variance-covariance matrix where the correl
 knitr::include_graphics("img/block-variance-covariance.pdf")
 ```
 
-We have all pieces to simulate the multivariate model. We can use the `sim_study_m()` that follows the same idea of the `sim_study()` function but extends to multiple outcomes. We generate a single study with $p$ outcomes where sampling errors are correlated according to a compound symmetry structure^[Also for the $V^2$ matrix we can assume different variance-covariance structures. In this example we are using a CS structure]. In practical terms, we assume that the
+We have all pieces to simulate the multivariate model. We can use the `sim_study_m()` that follows the same idea of the `sim_study()` function but extends to multiple outcomes. We generate a single study with $p$ outcomes where sampling errors are correlated according to a compound symmetry structure^[Also for the $V$ matrix we can assume different variance-covariance structures. In this example we are using a CS structure]. In practical terms, we assume that the
 correlation at the participant level between multiple outcomes is $r$ and fixed between studies.
 
 ```{r fun-sim-study-m, results='asis', echo = FALSE}
@@ -262,10 +322,10 @@ print_fun(simfuns$sim_study_m)
 
 ```{r}
 set.seed(seed)
-thetas <- c(0.1, 0, 0.7) # three real average outcomes
+mus <- c(0.1, 0, 0.7) # three real average outcomes
 n <- 30 # number of participant per study
 r <- 0.6 # correlation between sampling errors
-sim_study_m(thetas, nt = n, nc = n, r = r)
+sim_study_m(mus, nt = n, nc = n, r = r)
 ```
 
 As in the main paper, we can create a dataframe with simulation parameters and iterating the `sim_study_m()` producing a meta-analysis dataframe.
@@ -278,7 +338,7 @@ rho <- 0.7 # population level correlation between outcomes
 r <- 0.5 # correlation between sampling errors
 n <- 30 # number of participants per group per study
 
-thetas_r <- c(0.1, 0, 1) # population level real effect sizes
+mus <- c(0.1, 0, 1) # population level real effect sizes
 taus2 <- c(0.3, 0.3, 0.3) # population level real tau2s
 
 # creating the dataframe structure
@@ -292,17 +352,17 @@ sim <- expand_grid(
 head(sim)
 
 # adding the real effects and the random-effect adjustments
-sim$theta_r <- rep(thetas_r, k)
-sim$theta_i <- sim_T(k, p, taus2, rho)
+sim$mu <- rep(mus, k)
+sim$delta_i <- sim_T(k, p, taus2, rho)
 
 # average effect + random-effect adjustment
-sim$theta_r_i <- sim$theta_r + sim$theta_i
+sim$es <- sim$mu + sim$delta_i
 
 # splitting to list of studies for improving the simulation speed
 siml <- split(sim, sim$id)
 
 # simulating the effect sizes for each study
-resl <- lapply(siml, function(x) sim_study_m(x$theta_r_i, x$nt, x$nc, r))
+resl <- lapply(siml, function(x) sim_study_m(x$es, x$nt, x$nc, r))
 res <- dplyr::bind_rows(resl) # combine everything
 sim <- cbind(sim, res) # append to the sim dataframe
 
@@ -331,9 +391,9 @@ res <- rma.mv(yi, V, mods = ~ 0 + p, random = ~p|id, data = sim, struct = "CS")
 summary(res)
 ```
 
-The output is more complicated compared to previous models. The `Variance Components` is the estimation of the $T^{2}$ matrix. In the two-level random-effects model, we have a single $\tau^{2}$ while in the multivariate model, we have a full variance-covariance matrix. Using the `struct = "CS"` argument, we are forcing the `rma.mv()` function to use a compound symmetry structure, thus estimating a single $\tau^{2}$ and a single $\rho$. Again, this is consistent with our simulation but could be a stringent assumption in a real-world analysis. The crucial part is the `random = ~ p|id` argument that specifies the random-effects structure. The syntax is clearly explained here [https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects](https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects) The basic idea is to specify the random effect structure as `~ inner|outer` where inner is the outcome variable and outer is the paper variable. The mods = `~ 0 + p` argument specify to estimate the average effect for each outcome (i.e., the $\theta_{r}$ vector of average effects). We are removing the intercept (`~ 0 + p` or equivalently `~ p - 1`) and the model will estimate the mean for each level of the `p` variable.
+The output is more complicated compared to previous models. The `Variance Components` is the estimation of the $T^{2}$ matrix. In the two-level random-effects model, we have a single $\tau^{2}$ while in the multivariate model, we have a full variance-covariance matrix. Using the `struct = "CS"` argument, we are forcing the `rma.mv()` function to use a compound symmetry structure, thus estimating a single $\tau^{2}$ and a single $\rho$. Again, this is consistent with our simulation but could be a stringent assumption in a real-world analysis. The crucial part is the `random = ~ p|id` argument that specifies the random-effects structure. The syntax is clearly explained here [https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects](https://wviechtb.github.io/metafor/reference/rma.mv.html#specifying-random-effects) The basic idea is to specify the random effect structure as `~ inner|outer` where inner is the outcome variable and outer is the paper variable. The mods = `~ 0 + p` argument specify to estimate the average effect for each outcome (i.e., the $\mathbf{\mu_{\theta}}$ vector of average effects). We are removing the intercept (`~ 0 + p` or equivalently `~ p - 1`) and the model will estimate the mean for each level of the `p` variable.
 
-We could use also another structure for the $T^2$ matrix. We know that our data are generated using a CS structure thus using another structure will be less appropriate. In reality, is not known which is the real data generation model thus we can try different structure. Setting the `struct = "UN"` (unstructured) argument, `rma.mv` try to estimate a variance-covariance matrix where all correlations and variances need to be estimated. Compared to the previous model, we are know estimating 3 heterogeneity and three correlation parameters.
+We could use also another structure for the $T$ matrix. We know that our data are generated using a CS structure thus using another structure will be less appropriate. In reality, is not known which is the real data generation model thus we can try different structure. Setting the `struct = "UN"` (unstructured) argument, `rma.mv` try to estimate a variance-covariance matrix where all correlations and variances need to be estimated. Compared to the previous model, we are know estimating 3 heterogeneity and three correlation parameters.
 
 
 We could also use another structure for the $T^{2}$ matrix. We know that our data are generated using a CS structure; thus, using another structure will be less appropriate. In reality, it is not known which is the real data generation model; thus, we can try different structures. Setting the struct = "UN" (unstructured) argument, rma.mv tries to estimate a variance-covariance matrix where all correlations and variances need to be estimated. We are now estimating three
@@ -345,6 +405,65 @@ res <- rma.mv(yi, V, mods = ~ 0 + p, random = ~p|id, data = sim, struct = "UN")
 summary(res)
 ```
 
+# Extra
+
+## $I^2$ with homogeneous vs heterogeneous sample sizes
+
+In the paper we suggested that is not straightforward to simulate a meta-analysis fixing the $I^2$ as a simulation parameter with heterogeneous sample sizes. Here we show that when sample sizes are generated from a probability distribution (e.g., Gaussian) we can fix the $I^2$ value using the $\tilde{v}$ calculated using the expected value of the sample size distribution. For example, if the sample sizes of our $k$ studies is generate from a Poisson distribution $n_i \sim \mathcal{P}(\lambda)$, then $\tilde{v}$ can be calculated using $\lambda$ as *typical* sample size (i.e., as if the sample sizes were homogeneous). The following code simulate this scenario showing the distribution of $I^2$ with heterogeneous sample sizes^[Compared to the simulations of the paper here we are simulating the effect size and the sampling variances from the respective sampling distributions [e.g., supplementary materials by @Van_Aert2019-xt]].
+
+```{r}
+set.seed(seed)
+tau2 <- 0.2 # real tau2 value
+navg <- 40 # average sample size
+nmin <- 10 # minimum sample size
+k <- 30 # number of studies
+k <- 30 # number of studies
+nsim <- 1000 # number of simulations
+mu <- 0.3 # real average effect size
+
+# here we simulate some effect sizes using the aggregated
+# data approach, thus from the summary statistics distributions
+
+I2 <- rep(0, nsim)
+
+for(i in 1:nsim){
+  ni <- nmin + rpois(k, navg - nmin)
+  
+  # effect sizes
+  yi <- rnorm(k, rnorm(k, mu, sqrt(tau2)), sqrt(1/ni + 1/ni))
+  
+  # sampling variances
+  vi <- (rchisq(k, ni + ni - 2) / (ni + ni - 2)) * (1/ni + 1/ni)
+  
+  # model
+  fit <- rma(yi, vi)
+  
+  # extracting I2
+  I2[i] <- fit$I2
+}
+```
+
+```{r, echo = FALSE}
+title <- sprintf("Simulated $I^2$ values (Mean = %.3f)", mean(I2))
+
+hist(I2, 
+     breaks = seq(min(I2), 100, 3),
+     xlab = latex2exp::TeX("$I^2$"),
+     main = latex2exp::TeX(title),
+     col = "salmon",
+     cex.lab = 1.1,
+     cex.main = 1.3)
+```
+
+The $I^2$ calculated using the expected value of the sample sizes distribution ($\lambda = 40$) and assuming sample size homogeneity is:
+
+```{r}
+v <- 1/navg + 1/navg
+tau2 / (v + tau2)
+```
+
+The value is very close to the mean of the simulated $I^2$ distribution. In conclusion, by generating the sample sizes from a probability distribution (e.g., Poisson) and using the Higgins and Thompson [-@Higgins2002-fh] formula to calculate $\tilde{v}$ we can somehow fix the $I^2$ with heterogeneous sample sizes using the expected value of the distribution.
+
 # Useful resources
 
 - https://www.jepusto.com/simulating-correlated-smds/
@@ -354,6 +473,8 @@ summary(res)
 
 # References
 
-<!-- CAPTIONS -->
-
 (ref:fig-block-vcov) Example of a block variance-covariance matrix for three hypothetical studies. In the example, there are three outcomes ($p = 3$), but not all studies have all outcomes. For this reason, the matrix represents each study as a "block," and covariances between different studies are fixed to zero (because sampling errors are not correlated for different participants). The first study (pink) has three outcomes, thus a $3 \times 3$ matrix where the diagonal contains the sampling variances and off-diagonal elements are the sampling covariances. The second study has only one outcome; thus, the matrix is a single value for the sampling variance. The last study follows the same logic as the first study, with only two outcomes.
+
+(ref:img-multilevel) Graphical representation of a *multilevel* (three-level) model. Each observed effect size is defined as the overall effect average effect $\mu_{\theta}$, a study-specific random-effect $\delta_{i} \sim N(0, \tau^2)$ and a experiment-specific random-effects $\zeta_{ij} N(0, \omega^2)$.
+
+(ref:img-multivariate) Graphical representation of a *multivariate* model. In this example, we have two outcomes ($p$) (magenta and green) with an average effect ($\mu_{\theta_p}$), heterogeneity parameters ($\tau^2_p$), and a certain true correlation value ($\rho_{p_1p_2}$, third type of dependency). Each study at level-2 (as in the standard random-effects model) has two effect sizes with corresponding sampling variances. The two effect sizes are correlated ($\rho_{s}$, with $s$ for sampling errors) because each effect is collected on the same participants.
