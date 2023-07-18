@@ -2,36 +2,29 @@
 
 #' sim_study
 #' @description Simulate a single study based on the input parameters and return a dataframe with effect size and variance or raw data.
-#' @param theta number indicating the population level effect size.
-#' @param nt number indicating the number of participants for the treated group.
+#' @param es number indicating the population level effect size.
+#' @param nt number indicating the number of participants for the experimental group.
 #' @param nc number indicating the number of participants for the control group. If \code{NULL} the value assigned to \code{nt} will be used.
-#' @param hedges logical. Whether the Hedges' correction should be applied. Default to \code{TRUE}.
-#' @param aggregate logical. Whether the participants data need to be aggregated calculating the effect size and variance. Default to \code{TRUE}.
+#' @param aggregate logical. Whether the participants data need to be aggregated calculating the effect size and variance or not. Default to \code{TRUE}.
 #'
-#' @return a dataframe
+#' @return dataframe
 #' @import metafor
 #' @export
 #' @examples
-#' sim_study(0.3, 30, 30, TRUE, TRUE) # return aggregated data
-#' sim_study(0.3, 30, 30, TRUE, TRUE) # return participants data
+#' sim_study(0.3, 30, 30, aggregate = TRUE) # return aggregated data
+#' sim_study(0.3, 30, 30, aggregate = FALSE) # return participants data
 
-sim_study <- function(theta, nt, nc = NULL, hedges = TRUE, aggregate = TRUE){
+sim_study <- function(es, nt, nc = NULL, aggregate = TRUE){
   if(is.null(nc)) nc <- nt
   # generate from normal distribution
   yc <- rnorm(nc, 0, 1)
-  yt <- rnorm(nt, theta, 1)
-  # pooled variance
-  sp <- sqrt((var(yc)*(nc - 1) + var(yt)*(nt - 1)) / (nc + nt - 2))
-  # effect size
-  yi <- (mean(yt) - mean(yc)) / sp
+  yt <- rnorm(nt, es, 1)
   
-  # transform to hedges' g
-  if(hedges){
-    yi <- yi * metafor:::.cmicalc(nc + nt - 2)
-  }
+  # effect size
+  yi <- (mean(yt) - mean(yc))
   
   # sampling variance
-  vi <- (nc + nt)/(nc * nt) + yi^2/(2 * (nc + nt - 2))
+  vi <- var(yt)/nt + var(yt)/nc
   
   if(!aggregate){
     # return raw data
@@ -82,16 +75,16 @@ sim_studies <- function(..., data = NULL){
 #' @export
 #'
 #' @examples
-#' sim_study_m(c(0.1, 0.5, 1), 30, 30, 0.7)
-sim_study_m <- function(thetas, nt, nc, r){
+#' sim_study_m(mus = c(0.1, 0.5, 1), nt = 30, nc = 30, r = 0.7)
+sim_study_m <- function(mus, nt, nc, r){
   
-  p <- length(thetas)
+  p <- length(mus)
   
   # variance covariance matrix with sigma2 = 1
   Vcm <- r + diag(1 - r, nrow = p)
   
   yc <- MASS::mvrnorm(nt[1], rep(0, p), Vcm)
-  yt <- MASS::mvrnorm(nc[1], thetas, Vcm)
+  yt <- MASS::mvrnorm(nc[1], mus, Vcm)
   
   ytm <- apply(yt, 2, mean)
   ycm <- apply(yc, 2, mean)
@@ -99,9 +92,8 @@ sim_study_m <- function(thetas, nt, nc, r){
   ytv <- apply(yt, 2, var)
   ycv <- apply(yc, 2, var)
   
-  sp <- sqrt((ytv*(nt - 1) + ycv*(nc - 1)) / (nt + nc - 2))
-  yi <- (ytm - ycm) / sp
-  vi <- (nt + nc)/(nt * nc) + yi^2/(2 * (nt + nc - 2))
+  yi <- ytm - ycm
+  vi <- ytv/nt[1] + ycv/nc[1]
   
   data.frame(yi = yi, vi = vi)
 }
@@ -143,18 +135,18 @@ sim_T <- function(k, p, taus2, rho){
 #'
 #' @examples
 #' do_sim(10, 0.3, 0.1, 30, 10, 100)
-do_sim <- function(k, theta, tau2, navg, nmin, nsim, alpha = 0.05, summary = TRUE){
+do_sim <- function(k, mu, tau2, navg, nmin, nsim, alpha = 0.05, summary = TRUE){
   # preallocate for computation speed
   p <- vector(mode = "numeric", length = nsim)
   
   # start the simulation loop
   for(i in 1:nsim){
-    theta_i <- rnorm(k, 0, sqrt(tau2))
-    theta_theta_i <- theta + theta_i
-    # simulate sample size
+    deltai <- rnorm(k, 0, sqrt(tau2))
+    es <- mu + deltai
+    # simulate sample size, it is possible to use other distributions e.g., Gaussian
     n <- nmin + rpois(k, navg - nmin)
     # simulate the studies
-    sim <- sim_studies(theta_theta_i, n, n, data = NULL)
+    sim <- sim_studies(es, n, n, data = NULL)
     res <- rma(yi, vi, method = "REML", data = sim)
     p[i] <- res$pval # store the p value
   }
