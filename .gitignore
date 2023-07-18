@@ -45,4 +45,6 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+# Project Specific
 local-utils.R
+documents/response-letter
