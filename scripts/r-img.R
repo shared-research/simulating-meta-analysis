@@ -30,11 +30,11 @@ equal_effects$note <- sprintf("$y_i = \\theta + \\epsilon_i$")
 random_effect <- data.frame(
   id = 1:4,
   yi = c(-0.1, 0.4, 0.7, 0.25),
-  vi = c(0.05, 0.08, 0.1, 0.2),
+  vi = c(0.01, 0.02, 0.1, 0.05),
   model = "Random-Effects"
 )
 
-random_effect$note <- sprintf("$y_i = \\mu_{\\theta} + \\theta_i + \\epsilon_i$")
+random_effect$note <- sprintf("$y_i = \\mu_{\\theta} + \\delta_i + \\epsilon_i$")
 
 random_effect$di <- mean(random_effect$yi)
 
@@ -194,7 +194,7 @@ plot_metareg_bin <- ggplot(binary_metareg,
              size = 6, label.size = NA) +
   theme(axis.text.x = element_blank()) +
   theme_rfig() +
-  xlab(latex2exp::TeX("$d_i$")) +
+  xlab(latex2exp::TeX("$y_i$")) +
   ggtitle("Categorical Predictor") +
   xlim(xlim) +
   annotate("text", x = 1, y = 1.5, 
