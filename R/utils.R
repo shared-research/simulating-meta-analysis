@@ -1,14 +1,5 @@
 # Utils functions used in the paper and supplementary materials -----------
 
-#' svg_to_pdf
-#' @description convert all svg to pdf
-svg_to_pdf <- function(){
-  all_svg <- list.files(here::here("docs", "paper-draft", "img"), 
-                        pattern = ".svg", full.names = TRUE, recursive = TRUE)
-  out_names <- gsub(".svg", ".pdf", all_svg)
-  purrr::walk2(all_svg, out_names, rsvg::rsvg_pdf)
-}
-
 #' get_caption
 #' @description create text reference for captions
 get_caption <- function() {
@@ -153,23 +144,40 @@ as_tex <- function(x){
 
 
 #' check_sim
-#'
+#' @description
+#' The function compare a (named) list of simulation parameters with a (named) list of simulations results
+#' computing the absolute value of the difference
+#' 
 #' @param fixed named list of population level parameters
 #' @param results named list of simulation results
-#'
+#' @param name optional name for the simulation to be displayed
 #' @return NULL
 #' @import cli
 #' @export
 #'
-check_sim <- function(fixed, results){
+check_sim <- function(fixed, results, name = NULL){
   results <- results[names(fixed)] # arrange
   diff <- abs(unlist(results) - unlist(fixed))
   out <- sprintf("%s: Fixed = %.3f, Simulated = %.3f --> %s = %.3f",
                  cli::col_blue(names(results)), fixed, results, cli::col_magenta("|Fixed - Simulated|"), diff)
-  cat(out, sep = "\n\n")
+  
+  cli::cli_rule()
+  if(!is.null(name)){
+    name <- sprintf("Simulation: %s", cli::col_green(name))
+    cat(name, out, sep = "\n\n")
+  }else{
+    cat(out, sep = "\n\n")
+  }
+  cli::cli_rule()
 }
 
-get_packages <- function(){
+#' .get_packages
+#' @description
+#' Get all packages with the corresponding version used in the current project 
+#' @importFrom renv dependencies
+#' @return dataframe
+#' 
+.get_packages <- function(){
   options(renv.verbose = FALSE)
   pkgs <- renv::dependencies()
   pkgs <- unique(pkgs$Package)
