@@ -154,7 +154,7 @@ equal_vs_random <- cowplot::plot_grid(p_equal, p_random, ncol = 2)
 binary_metareg <- data.frame(
   id = 1:6,
   yi = c(0.1, -0.1, -0.1, 0.5, 0.7, 0.8),
-  vi = c(0.01, 0.02, 0.01, 0.01, 0.02, 0.03),
+  vi = c(0.001, 0.002, 0.001, 0.001, 0.002, 0.003),
   cond = rep(c("a", "b"), each = 3)
 )
 
@@ -178,16 +178,16 @@ binary_metareg$obs <- rnorm(nrow(binary_metareg), binary_metareg$yi, sqrt(binary
 
 plot_metareg_bin <- ggplot(binary_metareg,
                            aes(y = id)) +
-  geom_segment(aes(x = gm, xend = yi, y = id-0.2, yend = id-0.2),
+  geom_segment(aes(x = gm, xend = obs, y = id-0.2, yend = id-0.2),
                color = "darkgreen", size = 1) +
-  geom_segment(aes(x = cond_mean, xend = yi, y = id-0.2, yend = id-0.2),
+  geom_segment(aes(x = cond_mean, xend = obs, y = id-0.2, yend = id-0.2),
                color = "firebrick", size = 1) +
-  geom_point(aes(x = yi, y = id-0.2), size = 3) +
   geom_vline(xintercept = mm) +
   geom_vline(xintercept = mean(binary_metareg$cond_mean), linetype = "dashed") +
   stat_dist_halfeye(aes(dist = dist),
                     show.legend = FALSE,
-                    .width = 0.95) +
+                    .width = 0.95,
+                    scale = 1) +
   theme(axis.ticks.x = element_blank()) +
   ylab("Study") +
   geom_label(aes(x = cond_mean, y = 7, label = note), 
@@ -213,36 +213,42 @@ x <- seq(1, 6, 1)
 
 cont_metareg <- data.frame(
   id = 1:6,
-  #yi = 0.2 + x*0.1 + rnorm(6, 0, 0.15),
-  yi = c(0.2656016, 0.5375599, 0.6202332, 0.3823055, 0.5343109, 0.9233668),
+  yi = c(0.2656016, 0.5375599, 0.4202332, 0.3823055, 0.5343109, 0.9233668),
   vi = c(0.001, 0.002, 0.001, 0.001, 0.002, 0.003),
   x
 )
+
+cont_metareg <- arrange(cont_metareg, yi)
 
 cont_metareg$dist <- map2(cont_metareg$yi, 
                           sqrt(cont_metareg$vi), 
                           dist_normal)
 
-# cont_metareg$res <- cont_metareg$yi - cont_metareg$pi
-# cont_metareg$yi <- cont_metareg$yi + 0.1*sign(cont_metareg$res)
+#cont_metareg$yi <- ifelse(cont_metareg$id == 5, cont_metareg$yi+0.1, cont_metareg$yi)
 
 fit <- lm(yi ~ x, data = cont_metareg)
 cont_metareg$pi <- predict(fit, newdata = data.frame(x = cont_metareg$x-0.1))
 cont_metareg$gm <- mean(cont_metareg$yi)
 cont_metareg$res <- cont_metareg$yi - cont_metareg$pi
 
+
 set.seed(2027)
 cont_metareg$obs <- rnorm(nrow(cont_metareg), cont_metareg$yi, sqrt(cont_metareg$vi))
 
 plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
-  geom_segment(aes(x = x-0.1, xend = x-0.1, y = pi, yend = yi), color = "firebrick", linewidth = 1) +
+  geom_segment(aes(x = x-0.1, xend = x-0.1, y = pi, yend = obs), color = "firebrick", linewidth = 1) +
   geom_segment(aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), color = "darkgreen", linewidth = 1) +
-  geom_point(aes(x = x-0.1, y = yi), size = 3, color = "black") +
+  geom_segment(data = filter(cont_metareg, obs < pi & obs > gm), aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), 
+               color = "darkgreen", linewidth = 1) +
+  geom_segment(data = filter(cont_metareg, obs < pi & obs > gm),
+               aes(x = x-0.1, xend = x-0.1, y = pi, yend = obs), 
+               color = "firebrick", linewidth = 1) +
   geom_hline(yintercept = mean(cont_metareg$yi), linetype = "dashed") +
   stat_halfeye(aes(dist = dist),
                show.legend = FALSE,
                color = "black",
-               .width = 0.95) +
+               .width = 0.95,
+               scale = 0.7) +
   geom_abline(intercept = fit$coefficients[1], slope = fit$coefficients[2]) +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) +
