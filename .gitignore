@@ -48,3 +48,10 @@ rsconnect/
 # Project Specific
 local-utils.R
 documents/response-letter
+*_files/
+**/documents/paper/backup/
+paper_no_rev.Rmd
+paper_no_rev.pdf
+paper_no_rev.tex
+paper_supplementary.pdf
+preprint.pdf
