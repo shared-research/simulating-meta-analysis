@@ -60,7 +60,7 @@ params:
 knitr::opts_chunk$set(echo = TRUE,
                       fig.align = "center",
                       out.width = "80%",
-                      fig.width = 9,
+                      fig.width = 7,
                       size = "scriptsize",
                       fig.asp = 0.618,
                       warning = FALSE,
@@ -74,6 +74,11 @@ knitr::knit_hooks$set(chunk = function(x, options) {
   x <- def.chunk.hook(x, options)
   ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
 })
+
+# base r plot size
+knitr::opts_knit$set(global.par = TRUE)
+mcex <- 1.2
+par(cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5)
 ```
 
 ```{r packages, include=FALSE}
@@ -94,8 +99,9 @@ seed <- 2023 # general seed for all simulations
 
 ```{r functions, include = FALSE}
 # theme for plots
-theme_paper <- function(base_size = 15){
-  ltxplot::theme_latex(base_size = base_size)
+theme_paper <- function(base_size = 18){
+  ltxplot::theme_latex(base_size = base_size) +
+    theme(plot.title = element_text(size = 22))
 }
 
 # quick table
