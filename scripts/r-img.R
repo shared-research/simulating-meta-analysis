@@ -11,8 +11,9 @@ ltxplot::load_theme_ltx()
 
 # Functions ---------------------------------------------------------------
 
-theme_rfig <- function(size = 15){
-  ltxplot::theme_latex(base_size = size)
+theme_rfig <- function(size = 18){
+  ltxplot::theme_latex(base_size = size) +
+    theme(plot.title = element_text(size = 22))
 }
 
 # color-blind-friendly palettes see http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
@@ -197,20 +198,20 @@ plot_metareg_bin <- ggplot(binary_metareg,
   theme(axis.ticks.x = element_blank()) +
   ylab("Study") +
   geom_label(aes(x = cond_mean, y = 7, label = note), 
-             size = 6, label.size = NA) +
+             size = 6, label.size = NA, family = "lmroman") +
   theme(axis.text.x = element_blank()) +
   theme_rfig() +
   xlab(latex2exp::TeX("$y_i$")) +
   ggtitle("Categorical Predictor") +
   xlim(xlim) +
-  annotate("text", x = 1, y = 1.5, 
+  annotate("text", x = 0.7, y = 1.6666666666666667, 
            label = TeX("\\textbf{Residual $\\tau^2$}"), 
            parse = TRUE, color = cb_red, 
-           family = "bold", size = 8) +
-  annotate("text", x = 1, y = 2, 
+           family = "lmroman", size = 7.5, hjust = 0) +
+  annotate("text", x = 0.7, y = 2.5, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
            parse = TRUE, color = cb_green, 
-           family = "bold", size = 8) +
+           family = "lmroman", size = 7.5, hjust = 0) +
   geom_point(aes(x = obs, y = id), color = cb_red, shape = 15, size = 2.5)
 
 # Metaregression with numerical predictor ---------------------------------
@@ -261,14 +262,14 @@ plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
   theme_rfig() +
   ylab(latex2exp::TeX("$y_i$")) +
   ggtitle("Numerical Predictor") +
-  annotate("text", x = 6.5, y = 0.25,
+  annotate("text", x = 5, y = 0.20,
            label = TeX("\\textbf{Residual $\\tau^2$}"), 
-           parse = TRUE, color = cb_red, size = 8,
-           family = "lmroman") +
-  annotate("text", x = 6.5, y = 0.3, 
+           parse = TRUE, color = cb_red, size = 7.5,
+           family = "lmroman", hjust = 0) +
+  annotate("text", x = 5, y = 0.3, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
-           parse = TRUE, color = cb_green, size = 8,
-           family = "lmroman") +
+           parse = TRUE, color = cb_green, size = 7.5,
+           family = "lmroman", hjust = 0) +
   geom_point(aes(x = x, y = obs), color = cb_red, shape = 15, size = 2.5)
 
 # Saving ------------------------------------------------------------------
