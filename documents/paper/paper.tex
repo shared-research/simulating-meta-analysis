@@ -92,7 +92,7 @@
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{5}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 % Make \paragraph and \subparagraph free-standing
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
@@ -237,13 +237,15 @@ Correspondence concerning this article should be addressed to Filippo Gambarota 
 \affiliation{\vspace{0.5cm}\textsuperscript{1} Department of Developmental and Social Psychology, University of Padova, Italy}
 
 \abstract{%
-Meta-analysis is a powerful tool to combine evidence from existing literature. Despite several introductory and advanced materials about organizing, conducting, and reporting a meta-analysis, to our knowledge, there are no introductive materials about simulating the most common meta-analysis models. Data simulation is essential for developing and validating new statistical models and procedures. Furthermore, data simulation is a powerful educational tool for understanding a statistical method. In this tutorial, we show how to simulate \rev{equal-effects}, random-effects, and meta-regression models and illustrate how to estimate statistical power. In the supplementary materials, we extended these simulations also for multilevel and multivariate models. All materials associated with this article can be accessed on Open Science Framework (\url{https://osf.io/54djn/}).
+Meta-analysis is a powerful tool to combine evidence from existing literature. Despite several introductory and advanced materials about organizing, conducting, and reporting a meta-analysis, to our knowledge, there are no introductive materials about simulating the most common meta-analysis models. Data simulation is essential for developing and validating new statistical models and procedures. Furthermore, data simulation is a powerful educational tool for understanding a statistical method. In this tutorial, we show how to simulate equal-effects, random-effects, and meta-regression models and illustrate how to estimate statistical power. In the supplementary materials, we extended these simulations also for multilevel and multivariate models. All materials associated with this article can be accessed on Open Science Framework (\url{https://osf.io/54djn/}).
 }
 
 
 
 \begin{document}
 \maketitle
+
+\setcounter{secnumdepth}{5}
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -252,31 +254,35 @@ Meta-analysis is a powerful tool to combine evidence from existing literature. D
 ``If you do not simulate it, you have not understood it.''
 \end{quote}
 
-A meta-analysis is an essential tool for combining knowledge from multiple studies quantitatively. Meta-analysis is commonly used together with a systematic review of the literature. The meta-analysis has several advantages. Firstly, it allows combining evidence from multiple studies assigning more weight to studies with lower estimation variability. \color{red} Then using meta-regression, it is possible to include variables (i.e., moderators) to explain the observed heterogeneity (Borenstein, Hedges, Higgins, \& Rothstein, 2009, pp. 187--203). More recently, location-scale models have been developed to include predictors also on the residual heterogeneity (i.e., Viechtbauer \& López-López, 2022). \color{black} Finally, considering the replication crisis, there are statistical methods to determine the presence and extent of the publication bias. Despite the advantages, meta-analysis implementation is not always straightforward, especially for complex data structures. Additionally, the fact that there are several introductory and advanced resources to understand meta-analysis (Borenstein et al., 2009; Harrer, Cuijpers, Furukawa, \& Ebert, 2021; Schmid, Stijnen, \& White, 2022), to our knowledge, there are no introductory resources about how to simulate realistic meta-analytic data. Simulating data has several advantages because it requires understanding the statistical method and the data-generation process. Furthermore, data simulation is the primary tool when it comes to evaluating a new analysis method, estimating the statistical power, or understanding the long-run behavior of our data generation process (Gelman \& Hill, 2006, pp. 155--176; Gelman, Hill, \& Vehtari, 2020, pp. 69--76; Ingalls, 2011). A recent paper by DeBruine and Barr (2021), which deeply inspired the current work, proposed a stimulating way to understand linear \textcolor{red}{mixed-effects models} via data simulation. Simulating data is also a powerful educational tool within this framework. For these reasons, this work aims to introduce the basic concepts of meta-analysis and Monte Carlo simulations for \textcolor{red}{equal-effects}, random-effects, and meta-regression models with applications also to statistical power calculation. In the first section, we will introduce basic concepts of the meta-analysis that are useful for setting up the simulation. We will evaluate the effect size, variance calculation, and the \textcolor{red}{equal} vs.~random effects model distinction. Then we will describe how to simulate data for these models and simulate a meta-regression with categorical and numerical predictors. Finally, we will introduce the power analysis extending the previous examples to estimate the statistical power. We used the R statistical programming language (version 4.2.3; R Core Team, 2023). We assume the reader is familiar with the basic concepts of R, but core functions will be explained. Code and materials are available on the OSF repository (\url{https://osf.io/54djn/}). \color{red} A theoretical introduction, simulation examples for multivariate and multilevel models, and more details about the coding approach are available in the supplementary materials. \color{black}
+A meta-analysis is an essential tool for combining knowledge from multiple studies quantitatively. Meta-analysis is commonly used together with a systematic review of the literature. The meta-analysis has several advantages. Firstly, it allows combining evidence from multiple studies assigning more weight to studies with lower estimation variability. Then using meta-regression, it is possible to include variables (i.e., moderators) to explain the observed heterogeneity (Borenstein, Hedges, Higgins, \& Rothstein, 2009, pp. 187--203). More recently, location-scale models have been developed to include predictors also on the residual heterogeneity (i.e., Viechtbauer \& López-López, 2022). Finally, considering the replication crisis, there are statistical methods to determine the presence and extent of the publication bias. Despite the advantages, meta-analysis implementation is not always straightforward, especially for complex data structures. Additionally, the fact that there are several introductory and advanced resources to understand meta-analysis (Borenstein et al., 2009; Harrer, Cuijpers, Furukawa, \& Ebert, 2021; Schmid, Stijnen, \& White, 2022), to our knowledge, there are no introductory resources about how to simulate realistic meta-analytic data.
+
+Simulating data has several advantages because it requires understanding the statistical method and the data-generation process. Furthermore, data simulation is the primary tool when it comes to evaluating a new analysis method, estimating the statistical power, or understanding the long-run behavior of our data generation process (Gelman \& Hill, 2006, pp. 155--176; Gelman, Hill, \& Vehtari, 2020, pp. 69--76; Ingalls, 2011). A recent paper by DeBruine and Barr (2021), which deeply inspired the current work, proposed a stimulating way to understand linear mixed-effects models via data simulation. Simulating data is also a powerful educational tool within this framework.
+
+For these reasons, this work aims to introduce the basic concepts of meta-analysis and Monte Carlo simulations for equal-effects, random-effects, and meta-regression models with applications also to statistical power calculation. In the first section, we will introduce basic concepts of the meta-analysis that are useful for setting up the simulation. We will evaluate the effect size, variance calculation, and the equal vs.~random effects model distinction. Then we will describe how to simulate data for these models and simulate a meta-regression with categorical and numerical predictors. Finally, we will introduce the power analysis extending the previous examples to estimate the statistical power. We used the R statistical programming language (version 4.3.1; R Core Team, 2023).
+
+The aim of the tutorial is not providing a complete theoretical introduction to meta-analysis but presenting the core topics using a simulation-based approach. Readers expert in conducting meta-analyses could benefit more from the proposed approach in terms of simulation setup and coding strategies. Readers without experience in meta-analysis could benefit both from the theoretical introduction and the simulation approach. However, for a better and extensive overview of meta-analysis topics the reader could refer to Harrer, Cuijpers, and Ebert (2019), and Borenstein et al. (2009).
+
+We assume the reader is familiar with the basic concepts of R, but core functions will be explained. Code and materials are available on the OSF repository (\url{https://osf.io/54djn/}). A theoretical introduction, simulation examples for multivariate and multilevel models, and more details about the coding approach are available in the supplementary materials.
 
 \hypertarget{meta-analysis-introduction}{%
 \subsection{Meta-analysis introduction}\label{meta-analysis-introduction}}
 
 The meta-analysis is a statistical procedure to combine multiple studies (i.e., \emph{primary studies}) into a single statistical analysis (Borenstein et al., 2009). The idea is that combining numerous preliminary studies improve the estimation of a particular phenomenon more efficiently compared to conducting a single study. In statistical terms, the concept of the meta-analysis is to switch the statistical unit from the single participant or observation (i.e., \emph{level 1}) to the study (i.e., \emph{level 2}). Given that some studies will give more information because their estimation variability is smaller (e.g., higher sample size), the meta-analysis combines the studies assigning more weight as a function of the precision (i.e., the inverse of the variance).
 
-\color{red} As an example that will be used throughout the paper, we consider the efficacy of memory training in improving memory performance during a cognitive task. The typical primary study will collect data from a group of participants receiving the memory training (\emph{experimental group}) and another group receiving a control treatment (\emph{control group}). The focus of the meta-analysis is collecting multiple studies with similar aims and methods and estimating the average effect of memory training. Despite differences in the type of cognitive task or experimental setup, each primary study collects an \emph{experimental group} (\(n_{T}\)) and \emph{control group} (\(n_{C}\)) and computes the average performance (\emph{experimental group} \(\overline T\) and \emph{control group} \(\overline C\)) and standard deviations (\emph{experimental group} \(s_{T}\) and \emph{control group}
-\(s_{C}\)). \color{black}
+As an example that will be used throughout the paper, we consider the efficacy of memory training in improving memory performance during a cognitive task. The typical primary study will collect data from a group of participants receiving the memory training (\emph{experimental group}) and another group receiving a control treatment (\emph{control group}). The focus of the meta-analysis is collecting multiple studies with similar aims and methods and estimating the average effect of memory training. Despite differences in the type of cognitive task or experimental setup, each primary study collects an \emph{experimental group} (\(n_{T}\)) and \emph{control group} (\(n_{C}\)) and computes the average performance (\emph{experimental group} \(\overline T\) and \emph{control group} \(\overline C\)) and standard deviations (\emph{experimental group} \(s_{T}\) and \emph{control group}
+\(s_{C}\)).
 
 \hypertarget{effect-size-and-variance}{%
 \subsubsection{Effect size and variance}\label{effect-size-and-variance}}
 
-The first step of a meta-analysis is to extract information from included studies. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures (see Lakens, 2013 for an overview), such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's \(d\) (Cohen, 1988) or the Pearson correlation coefficient \(\rho\) which could be calculated using the associated sample estimator \emph{r} are commonly used to compare heterogeneous outcome variables\footnote{\color{red} When using bounded effect sizes such as the Pearson correlation, Fisher Z-transformation is commonly used (Borenstein et al., 2009, pp. 41--43) \color{black}}. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing e.g.~using the unstandardized mean difference (UMD, Borenstein et al., 2009, pp. 21--24).
+The first step of a meta-analysis is to extract information from included studies. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures (see Lakens, 2013 for an overview), such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's \(d\) (Cohen, 1988) or the Pearson correlation coefficient \(\rho\) which could be calculated using the associated sample estimator \emph{r} are commonly used to compare heterogeneous outcome variables\footnote{ When using bounded effect sizes such as the Pearson correlation, Fisher Z-transformation is commonly used (Borenstein et al., 2009, pp. 41--43)}. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing e.g.~using the unstandardized mean difference (UMD, Borenstein et al., 2009, pp. 21--24).
 
 As reported in the previous section, beyond the effect size of each study, we need to assign a weight according to the precision. For this reason, we need to calculate the sampling variability of the effect size or the raw measure that will represent the estimation precision. Each raw or standardized effect size measure (e.g., raw mean difference, Cohen's \(d\), and Pearson's correlation) has a different formula to calculate the sampling variability. The idea is to choose the appropriate measure considering the study design (e.g., between vs.~within-subjects) and available information and find the proper formula to compute the sampling variability. In addition, there are formulas and approaches to convert from one effect size measure to another (Borenstein et al., 2009; Lakens, 2013; Lipsey \& Wilson, 2001).\footnote{See also the blog post by James Pustejovsky (\href{https://www.jepusto.com/alternative-formulas-for-the-smd/}{www.jepusto.com/alternative-formulas-for-the-smd}) for a general method to compute the sampling variability for standardized mean difference measures.} Usually, the effect size sampling variability depends mainly on the sample size that determines the weight assigned during the meta-analytic estimation.
 
 \hypertarget{equal-vs-fixed-vs-random-effects-model}{%
 \subsubsection{Equal vs fixed vs random-effects model}\label{equal-vs-fixed-vs-random-effects-model}}
 
-\color{red}
-
-The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can find essentially three meta-analysis models: the equal-effects, the fixed-effects, and the random-effects model (Hedges \& Vevea, 1998; Laird \& Mosteller, 1990). The \emph{equal-effects} model assumes that each study included in the meta-analysis is a more or less precise estimation of the true underlying effect (\(\theta\)). In other terms, we are assuming that there is no variability (i.e., heterogeneity) among true effect sizes. On the other side, suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In this case, we have true variability (i.e., heterogeneity) among studies. The \emph{random-effects} model assumes a distribution of real effects with mean \(\mu_{\theta}\) and variance \(\tau^{2}\) thus estimating the heterogeneity. Finally, the \emph{fixed-effects} model estimate the average effect of the included pool of studies ignoring the presence of heterogeneity. While the distinction between the equal and fixed-effects model is theoretical, the estimated model is the exactly the same\footnote{See \href{https://wviechtb.github.io/metafor/reference/misc-models.html}{wviechtb.github.io/metafor/reference/misc-models.html} for a detailed explanation}. The \emph{random-effects} model assumes and estimates heterogeneity among effect sizes leading to different model parameters. From an inferential point of view, the \emph{random-effects} model provides unconditional inference to the population of effect sizes while the \emph{fixed-effects} model estimates the average effect of the selected studies and not population-level parameters. The \emph{equal-effects} model assumes a single true population effect to be estimated. Figure \ref{fig:img-equal-vs-random} depicts the theoretical distinction between the equal and random-effects model. In the presence of heterogeneity, we can include moderators (e.g., the type of experimental setup) into a meta-regression model to explain the effect size heterogeneity. \color{red} An interesting proposal to combine evidence from these different models into a single analysis is called Bayesian model-averaged meta-analysis (Berkhout, Haaf, Gronau, Heck, \& Wagenmakers, 2023; Gronau, Heck, Berkhout, Haaf, \& Wagenmakers, 2021). However, this model is beyond the scope of the tutorial. \color{black}
-
-\color{black}
+The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can find essentially three meta-analysis models: the equal-effects, the fixed-effects, and the random-effects model (Hedges \& Vevea, 1998; Laird \& Mosteller, 1990). The \emph{equal-effects} model assumes that each study included in the meta-analysis is a more or less precise estimation of the true underlying effect (\(\theta\)). In other terms, we are assuming that there is no variability (i.e., heterogeneity) among true effect sizes. On the other side, suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In this case, we have true variability (i.e., heterogeneity) among studies. The \emph{random-effects} model assumes a distribution of real effects with mean \(\mu_{\theta}\) and variance \(\tau^{2}\) thus estimating the heterogeneity. Finally, the \emph{fixed-effects} model estimate the average effect of the included pool of studies ignoring the presence of heterogeneity. While the distinction between the equal and fixed-effects model is theoretical, the estimated model is the exactly the same\footnote{See \href{https://wviechtb.github.io/metafor/reference/misc-models.html}{wviechtb.github.io/metafor/reference/misc-models.html} for a detailed explanation}. The \emph{random-effects} model assumes and estimates heterogeneity among effect sizes leading to different model parameters. From an inferential point of view, the \emph{random-effects} model provides unconditional inference to the population of effect sizes while the \emph{fixed-effects} model estimates the average effect of the selected studies and not population-level parameters. The \emph{equal-effects} model assumes a single true population effect to be estimated. Figure \ref{fig:img-equal-vs-random} depicts the theoretical distinction between the equal and random-effects model. In the presence of heterogeneity, we can include moderators (e.g., the type of experimental setup) into a meta-regression model to explain the effect size heterogeneity. An interesting proposal to combine evidence from these different models into a single analysis is called Bayesian model-averaged meta-analysis (Berkhout, Haaf, Gronau, Heck, \& Wagenmakers, 2023; Gronau, Heck, Berkhout, Haaf, \& Wagenmakers, 2021). However, this model is beyond the scope of the tutorial.
 
 \scriptsize
 
@@ -286,7 +292,7 @@ The core of a meta-analysis is combining the results of multiple studies giving 
 
 }
 
-\caption{\color{red} The difference between the assumptions of the \emph{equal} and \emph{random-effects model}. Each distribution depicts the sampling distribution of \(k = 4\) hypothetical studies (\(i = 1\), \(2\), \ldots, \(4\)) with a certain observed effect size \(y_{i}\) (red squares), sampling variability \(\sigma_{\epsilon_i}^{2}\) and the 95\% confidence interval (black segment). The \emph{equal-effects} plot on the left suggests that each observed effect size has the same underlying true effect \(\theta\) (each distribution has the same mean) with a different degree of precision (e.g., Study 1 is more precise than Study 3). In practice, each study has a different observed effect size where studies with high precision (i.e., narrow sampling distributions) will be close to the real effect (\(\theta\)). The \emph{random-effects model} on the right suggests that beyond the error term (\(\epsilon_{i}\)), each real effect size is composed of a fixed part (now \(\mu_{\theta}\)) and a random part (\(\delta_{i}\)) sampled from a normal distribution with mean zero and variance \(\tau^{2}\). When \(\tau^{2}\) is zero, the random-effects reduces to a equal-effects model. \color{black}}\label{fig:img-equal-vs-random}
+\caption{The difference between the assumptions of the \emph{equal} and \emph{random-effects model}. Each distribution depicts the sampling distribution of \(k = 4\) hypothetical studies (\(i = 1\), \(2\), \ldots, \(4\)) with a certain observed effect size \(y_{i}\) (pink squares), sampling variability \(\sigma_{\epsilon_i}^{2}\) and the 95\% confidence interval (black segment). The \emph{equal-effects} plot on the left suggests that each observed effect size has the same underlying true effect \(\theta\) (each distribution has the same mean) with a different degree of precision (e.g., Study 1 is more precise than Study 3). In practice, each study has a different observed effect size where studies with high precision (i.e., narrow sampling distributions) will be close to the real effect (\(\theta\)). The \emph{random-effects model} on the right suggests that beyond the error term (\(\epsilon_{i}\)), each real effect size is composed of a fixed part (now \(\mu_{\theta}\)) and a random part (\(\delta_{i}\)) sampled from a normal distribution with mean zero and variance \(\tau^{2}\). When \(\tau^{2}\) is zero, the random-effects reduces to a equal-effects model.}\label{fig:img-equal-vs-random}
 \end{figure}
 
 \normalsize
@@ -348,10 +354,7 @@ The standard error estimated solving analytically is 0.26 and using the Monte Ca
 \hypertarget{simulation-setup}{%
 \subsection{Simulation setup}\label{simulation-setup}}
 
-\color{red}
-
 This tutorial uses several R packages for the simulations, meta-analysis fitting, and figures/tables. For the data manipulation, we used the \emph{tidyverse} (Wickham, 2023) package. For the models fitting we used the \emph{metafor} (Viechtbauer, 2010) package. For figures and tables the \emph{ggplot2} (Wickham et al., 2023) or the \texttt{metafor::forest()} function, \emph{kableExtra} (Zhu, 2021) and \emph{papaja} (Aust \& Barth, 2022) packages. We set the \texttt{seed} for reproducibility of the simulation environment.
-\color{black}
 
 \scriptsize
 
@@ -367,11 +370,7 @@ This tutorial uses several R packages for the simulations, meta-analysis fitting
 
 \normalsize
 
-\color{red}
-
-Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the \emph{two-level}, \emph{equal,} and \emph{random-effects} models. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. In simulation studies where the purpose is not evaluating effect size estimators, it is convenient to simulate unstandardized effect size measures (see Viechtbauer, 2005, 2007). The estimator is unbiased thus not requiring small sample correction (Hedges, 1981; e.g., Hedges, 1989). Furthermore, the effect size and the sampling variance are independent. Similar to the simulation approach by Viechtbauer (2005, 2007) the \emph{experimental} group (\(T\)) and \emph{control} groups \(C\) are sampled from normal distributions respectively \(T_i \sim \mathcal{N}(\Delta, 1)\) and \(C_i \sim \mathcal{N}(0, 1)\) where \(\Delta\) is the unstandardized mean difference (UMD). The UMD and the sampling variance are calculated using Equations \eqref{eq:effsize} and \eqref{eq:effsizevar} where \(y\) is the estimated value of \(\Delta\). \color{black}
-
-\color{red}
+Before diving into the specific simulations, in this section, we define the common aspects of all simulations in the following sections. The current paper focuses on the \emph{two-level}, \emph{equal,} and \emph{random-effects} models. All the examples refer to primary studies that assess the efficacy of a treatment by comparing a control and an experimental group. In simulation studies where the purpose is not evaluating effect size estimators, it is convenient to simulate unstandardized effect size measures (see Viechtbauer, 2005, 2007). The estimator is unbiased thus not requiring small sample correction (Hedges, 1981; e.g., Hedges, 1989). Furthermore, the effect size and the sampling variance are independent. Similar to the simulation approach by Viechtbauer (2005, 2007) the \emph{experimental} group (\(T\)) and \emph{control} groups \(C\) are sampled from normal distributions respectively \(T_i \sim \mathcal{N}(\Delta, 1)\) and \(C_i \sim \mathcal{N}(0, 1)\) where \(\Delta\) is the unstandardized mean difference (UMD). The UMD and the sampling variance are calculated using Equations \eqref{eq:effsize} and \eqref{eq:effsizevar} where \(y\) is the estimated value of \(\Delta\).
 
 \begin{align}
 \begin{gathered}
@@ -387,12 +386,8 @@ D = \overline{T} - \overline{C}
 \end{gathered}
 \end{align}
 
-\color{black}
-
 We can use the following algorithm implemented in the \texttt{sim\_study()} function to simulate a single study. Before using the \texttt{sim\_study()}
 function, we can create a data frame for the simulation using the \texttt{make\_data()} function\footnote{This function is a simple wrapper of \texttt{data.frame()} that given the number of studies and other variables create the data structure for the simulation.}. Table \ref{tab:sim-data-example-tab} depicts an example of the \texttt{make\_data()} output.
-
-\color{red}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -406,8 +401,6 @@ function, we can create a data frame for the simulation using the \texttt{make\_
 \end{enumerate}
 
 The simulation approach can be easily extended calculating a standardized effect size measures (e.g., Cohens' \(d\) Cohen, 1988) and the corresponding sampling variance. For example, after generating data for the two groups the mean difference can be standardized using the pooled standard deviation and applying the appropriate correction (Hedges, 1981; e.g., Hedges, 1989).
-
-\color{black}
 
 \scriptsize
 
@@ -476,9 +469,7 @@ The simulation approach can be easily extended calculating a standardized effect
 
 \normalsize
 
-\color{red}
-
-The \texttt{es} is the true effect size (\(\mu_{\theta}\) for the random-effects model and \(\theta\) for the equal-effects model), \texttt{nc} and \texttt{nt} are the sample size for the control and experimental group, \texttt{aggregate} controls if returning the effect size and the corresponding sampling variance or the participant-level data. We can generate a single study with the desired parameters with this function. A suggestion for each simulation step is to generate a large \(n\) to reduce the sampling error and check the recovery of simulated parameters. This is a general strategy that can be applied to every simulation. The \texttt{sim\_studies()} function will iterate through variables in the \texttt{...} argument creating the meta-analysis data frame. The \texttt{mapply()} function is clearly explained in the supplementary materials. \color{black}
+The \texttt{es} is the true effect size (\(\mu_{\theta}\) for the random-effects model and \(\theta\) for the equal-effects model), \texttt{nc} and \texttt{nt} are the sample size for the control and experimental group, \texttt{aggregate} controls if returning the effect size and the corresponding sampling variance or the participant-level data. We can generate a single study with the desired parameters with this function. A suggestion for each simulation step is to generate a large \(n\) to reduce the sampling error and check the recovery of simulated parameters. This is a general strategy that can be applied to every simulation. The \texttt{sim\_studies()} function will iterate through variables in the \texttt{...} argument creating the meta-analysis data frame. The \texttt{mapply()} function is clearly explained in the supplementary materials.
 
 The following code simulates a single study with \(n = 10000\) and check the estimated mean and standard deviation.
 
@@ -499,7 +490,7 @@ The following code simulates a single study with \(n = 10000\) and check the est
 
 The control group has a mean of -0.008 (SD = 0.996) and the experimental group has a mean of 0.306 (SD = 1.013) which are remarkably close to the simulated values.
 
-Using the \texttt{sim\_study()} function multiple times (with the appropriate adjustments) we can generate a series of studies simulating a data set for a meta-analysis (using the \texttt{sim\_studies()} function). After each example, we will compute the appropriate model (e.g., \emph{equal} or \emph{random-effects}) using the \texttt{metafor} package (Viechtbauer, 2010) to check the recovery of simulated parameters\footnote{\color{red} By default \texttt{metafor} use the Wald \emph{z} test on model parameters but other inference methods are available e.g.~the Knapp and Hartung (2003) method by setting \texttt{test="knha"} within the \texttt{rma()} function. This method is useful especially when the number of studies is low (see \href{https://wviechtb.github.io/metafor/reference/misc-recs.html}{wviechtb.github.io/metafor/reference/misc-recs.html} for more details) \color{black}}. Table \ref{tab:notation-tab} \textcolor{red}{summarizes the notation used in simulations and code in equations and code.}
+Using the \texttt{sim\_study()} function multiple times (with the appropriate adjustments) we can generate a series of studies simulating a data set for a meta-analysis (using the \texttt{sim\_studies()} function). After each example, we will compute the appropriate model (e.g., \emph{equal} or \emph{random-effects}) using the \texttt{metafor} package (Viechtbauer, 2010) to check the recovery of simulated parameters\footnote{ By default \texttt{metafor} use the Wald \emph{z} test on model parameters but other inference methods are available e.g.~the Knapp and Hartung (2003) method by setting \texttt{test="knha"} within the \texttt{rma()} function. This method is useful especially when the number of studies is low (see \href{https://wviechtb.github.io/metafor/reference/misc-recs.html}{wviechtb.github.io/metafor/reference/misc-recs.html} for more details)}. Table \ref{tab:notation-tab} summarizes the notation used in simulations and code in equations and code.
 
 \scriptsize
 
@@ -546,8 +537,6 @@ id & \multicolumn{1}{c}{nt} & \multicolumn{1}{c}{nc} & \multicolumn{1}{c}{es}\\
 
 \normalsize
 
-\color{red}
-
 \scriptsize
 
 \begin{table}[H]
@@ -593,7 +582,7 @@ $\epsilon_i$ & \texttt{} & Sampling error for the study i\\
 \hypertarget{equal-effects-model}{%
 \subsection{Equal-effects model}\label{equal-effects-model}}
 
-The most basic model to simulate is the \emph{equal-effects model} (EE). As reported in the previous sections, the \emph{equal-effects model} assumes the presence of a single true effect (\(\theta\)) and the \color{red} observed variability is caused by each effect size being a more or less imprecise estimation of the true effect. \color{black} In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \eqref{eq:equal-effects-model1} and \eqref{eq:equal-effects-model2} \textcolor{red}{formalize} the \emph{equal-effects} model.
+The most basic model to simulate is the \emph{equal-effects model} (EE). As reported in the previous sections, the \emph{equal-effects model} assumes the presence of a single true effect (\(\theta\)) and the observed variability is caused by each effect size being a more or less imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \eqref{eq:equal-effects-model1} and \eqref{eq:equal-effects-model2} formalize the \emph{equal-effects} model.
 
 \begin{align}
 \begin{gathered}
@@ -602,8 +591,6 @@ y_i = \theta + \epsilon_i
 \end{gathered}
 \end{align}
 
-\color{black}
-
 \begin{align}
 \begin{gathered}
 \epsilon_i \sim \mathcal{N}(0,\sigma_{\epsilon_i}^{2})
@@ -611,7 +598,7 @@ y_i = \theta + \epsilon_i
 \end{gathered}
 \end{align}
 
-Each observed effect size \color{red} (\(y_{i}\)) \color{black} is composed of the real effect size \color{red} \(\theta\) \color{black} plus an error term (\(\epsilon_{i}\)) that is sampled from a normal distribution with \(\mu = 0\) and \color{red} \(\sigma^{2} = \sigma_{\epsilon_i}^{2}\) \color{black} (i.e., the known sampling variance of the study \(i\)). As demonstrated in Equation \eqref{eq:effsize}, the increase in sample size will decrease the sampling variability. \textcolor{red}{A study with a extremely large sample size} will essentially have \(\theta\) as the observed effect size. Since we are sampling participants' level data, the error component is already included in the \texttt{sim\_study()} function. To simulate this model in R we can just call the \texttt{sim\_study()} multiple times according to the number of desired studies (\(k\)). In addition, we simulate that each primary study will have a sample size of \(n = 20\) for both groups. We will discuss later the appropriateness of this assumption.
+Each observed effect size (\(y_{i}\)) is composed of the real effect size \(\theta\) plus an error term (\(\epsilon_{i}\)) that is sampled from a normal distribution with \(\mu = 0\) and \(\sigma^{2} = \sigma_{\epsilon_i}^{2}\) (i.e., the known sampling variance of the study \(i\)). As demonstrated in Equation \eqref{eq:effsize}, the increase in sample size will decrease the sampling variability. A study with a extremely large sample size will essentially have \(\theta\) as the observed effect size. Since we are sampling participants' level data, the error component is already included in the \texttt{sim\_study()} function. To simulate this model in R we can just call the \texttt{sim\_study()} multiple times according to the number of desired studies (\(k\)). In addition, we simulate that each primary study will have a sample size of \(n = 20\) for both groups. We will discuss later the appropriateness of this assumption.
 
 \scriptsize
 
@@ -630,16 +617,13 @@ Each observed effect size \color{red} (\(y_{i}\)) \color{black} is composed of t
 
 \normalsize
 
-\color{red}
-
 We are using the \(\theta\) parameter to generate random data using the \texttt{sim\_study()} function that will introduce the random error component \(\epsilon_{i}\). Then we can fit the \emph{equal-effects} meta-analysis model with the \texttt{rma} function and \texttt{method\ =\ "EE"} of the \texttt{metafor} package. The parameter we are estimating is \(\theta\) which is close to our simulation value (see Table \ref{tab:res-equal-effects}). Increasing the number of studies (\(k\)) and/or the number of participants in each study (\(n\)) will improve estimation reducing the standard error.
-\color{black}
 
 \scriptsize
 
 \begin{table}[H]
 
-\caption{\label{tab:res-equal-effects}\color{red} Summary of the simulated equal-effects model. The only estimated parameter is the average effect \(\theta\) (\(\beta\)) with the standard error, 95\% confidence interval, and the Wald z-test. The z-test evaluates the null hypothesis that the real effect equals zero.\color{black}}
+\caption{\label{tab:res-equal-effects}Summary of the simulated equal-effects model. The only estimated parameter is the average effect \(\theta\) (\(\beta\)) with the standard error, 95\% confidence interval, and the Wald z-test. The z-test evaluates the null hypothesis that the real effect equals zero.}
 \centering
 \fontsize{9}{11}\selectfont
 \begin{tabular}[t]{ccccc}
@@ -664,15 +648,13 @@ Increasing the sample size for each study will increase the estimation precision
 
 }
 
-\caption{\color{red} Forest plots of two simulated \emph{equal-effects models}. On the left, the simulated model has \(nt,nc = 30\) for each included study while on the right the sample size for each study is \(nt,nc = 500\). Given that the data were generated under a \emph{equal-effects model}, when the sample size is high (on the right) each study is aligned on the real effect size because the error component (\(\epsilon_{i}\)) \textcolor{red}{is close to zero}. The average effect size is similar (depending on the random numbers generation) between the two scenarios while the estimation precision (the width of the black diamond) is narrower on the right. \color{black}}\label{fig:equal-effects-high-low-precision}
+\caption{Forest plots of two simulated \emph{equal-effects models}. On the left, the simulated model has \(nt,nc = 30\) for each included study while on the right the sample size for each study is \(nt,nc = 500\). Given that the data were generated under a \emph{equal-effects model}, when the sample size is high (on the right) each study is aligned on the real effect size because the error component (\(\epsilon_{i}\)) is close to zero. The average effect size is similar (depending on the random numbers generation) between the two scenarios while the estimation precision (the width of the black diamond) is narrower on the right.}\label{fig:equal-effects-high-low-precision}
 \end{figure}
 
 \normalsize
 
 \hypertarget{re-model}{%
 \subsection{Random-effects model}\label{re-model}}
-
-\color{red}
 
 The \emph{random-effects model} (RE) can be considered an extension of the \emph{equal-effects model}. The \emph{equal-effects model} assumes that the real effect is a single value. The random-effects model relaxes this assumption allowing the true effect size to vary across studies. For example, the difference between groups we are simulating could be influenced by the type of experiment or the participants' age.
 Now \(\theta\) is no longer a single value but a distribution of values. Due to the effect size being a distribution, we need to estimate both the mean and the variance. The parameter \(\mu_{\theta}\) is mean of the distribution, interpreted as the average effect size across different true effect sizes and \(\tau^{2}\) is the variance of the distribution interpreted as variability or heterogeneity of effect sizes. In practical terms, we now have two sources of variability: \(\tau^{2}\), which express the real difference among effect sizes, and \(\sigma_{\epsilon_i}^{2}\) which is the known sampling variance of each study as in the \emph{equal-effects model}. We can easily extend Equation \eqref{eq:equal-effects-model1} with Equations \eqref{eq:random-effects-model1}, \eqref{eq:random-effects-model2} and \eqref{eq:random-effects-model3}.
@@ -700,8 +682,6 @@ y_i = \mu_{\theta} + \delta_i + \epsilon_i \\
 
 Compared to the \emph{equal-effects model} we need to generate another adjustment to the overall effect \(\mu_{\theta}\) from a normal distribution with mean 0 and variance \(\tau^{2}\). The real effect size for the study \(i\) will be \(\mu_{\theta} + \delta_{i}\) where \(\delta_{i}\) are the random-effects regulated by the \(\tau^{2}\) parameter.
 
-\color{black}
-
 \scriptsize
 
 \begin{Shaded}
@@ -728,13 +708,13 @@ Compared to the \emph{equal-effects model} we need to generate another adjustmen
 
 \normalsize
 
-Then we can fit the \emph{random-effects} meta-analysis model with the \texttt{rma} function and \texttt{method\ =\ "REML"}. Table \ref{tab:res-random-effects} depicts the model results\footnote{The \texttt{method\ =\ "REML"} is not the only method to estimate a random-effects model. See the \texttt{rma} documentation (\url{https://wviechtb.github.io/metafor/reference/rma.uni.html\#specifying-the-model}) for an overview of other estimation methods} of the \texttt{metafor} package. We are now estimating two parameters: \(\mu_{\theta}\) and \(\tau^{2}\). As for the \color{red} \emph{equal-effects model} \color{black}, increasing the number of studies and/or the number of participants in each study will improve estimation reducing the standard error.
+Then we can fit the \emph{random-effects} meta-analysis model with the \texttt{rma} function and \texttt{method\ =\ "REML"}. Table \ref{tab:res-random-effects} depicts the model results\footnote{The \texttt{method\ =\ "REML"} is not the only method to estimate a random-effects model. See the \texttt{rma} documentation (\url{https://wviechtb.github.io/metafor/reference/rma.uni.html\#specifying-the-model}) for an overview of other estimation methods} of the \texttt{metafor} package. We are now estimating two parameters: \(\mu_{\theta}\) and \(\tau^{2}\). As for the \emph{equal-effects model} , increasing the number of studies and/or the number of participants in each study will improve estimation reducing the standard error.
 
 \scriptsize
 
 \begin{table}[H]
 
-\caption{\label{tab:res-random-effects}\color{red} Summary of the simulated random-effects model: Compared to the equal-effects model, there are more parameters. The \(\beta\) is the average effect (\(\mu_{\theta}\)) with the standard error, 95\% confidence interval, and the Wald z-test. The \(\tau^{2}\) is the estimated heterogeneity and the \(I^{2}\) (explained in Section \ref{re-model}) represents the percentage of total variability due to between-study heterogeneity. \color{black}}
+\caption{\label{tab:res-random-effects}Summary of the simulated random-effects model: Compared to the equal-effects model, there are more parameters. The \(\beta\) is the average effect (\(\mu_{\theta}\)) with the standard error, 95\% confidence interval, and the Wald z-test. The \(\tau^{2}\) is the estimated heterogeneity and the \(I^{2}\) (explained in Section \ref{re-model}) represents the percentage of total variability due to between-study heterogeneity.}
 \centering
 \fontsize{9}{11}\selectfont
 \begin{tabular}[t]{ccccc}
@@ -751,7 +731,7 @@ overall & 0.394 (SE = 0.110) & $[0.179, 0.609]$ & 3.596 & < 0.001\\
 
 \normalsize
 
-An important aspect of the \emph{random-effects model} is the interplay between the heterogeneity (\(\tau^{2}\)) and the sampling variability (\(\sigma_{i}^{2}\)). As the number of studies \(k\) increases, the estimation of \(\mu_{\theta}\) and \(\tau^{2}\) becomes more precise \color{red} (Blázquez-Rincón, Sánchez-Meca, Botella, \& Suero, 2023; Rubio-Aparicio et al., 2018) \color{black}. Additionally, as the sample size of each study decreases, each \(\delta_{i}\) will be estimated with higher precision but as long as \(\tau^{2} \neq 0\) there will be variability among effect sizes. In other words, increasing the sample size of each study or the number of studies will not affect the value of \(\tau^{2}\) but only the estimation precision (see Borenstein et al., 2009, Chapter 16, Figure 16.6 for a clear explanation). This can be easily demonstrated using the previous simulation, increasing each study sample size. Figure \ref{fig:random-effects-high-low-precision} depicts the same meta-analysis but with different precision in estimating the study \(y_{i}\). Compared to Figure \ref{fig:equal-effects-high-low-precision}, increasing the sample size of primary studies improves the estimation of each study without reducing the between-studies heterogeneity.
+An important aspect of the \emph{random-effects model} is the interplay between the heterogeneity (\(\tau^{2}\)) and the sampling variability (\(\sigma_{i}^{2}\)). As the number of studies \(k\) increases, the estimation of \(\mu_{\theta}\) and \(\tau^{2}\) becomes more precise (Blázquez-Rincón, Sánchez-Meca, Botella, \& Suero, 2023; Rubio-Aparicio et al., 2018) . Additionally, as the sample size of each study decreases, each \(\delta_{i}\) will be estimated with higher precision but as long as \(\tau^{2} \neq 0\) there will be variability among effect sizes. In other words, increasing the sample size of each study or the number of studies will not affect the value of \(\tau^{2}\) but only the estimation precision (see Borenstein et al., 2009, Chapter 16, Figure 16.6 for a clear explanation). This can be easily demonstrated using the previous simulation, increasing each study sample size. Figure \ref{fig:random-effects-high-low-precision} depicts the same meta-analysis but with different precision in estimating the study \(y_{i}\). Compared to Figure \ref{fig:equal-effects-high-low-precision}, increasing the sample size of primary studies improves the estimation of each study without reducing the between-studies heterogeneity.
 
 \scriptsize
 
@@ -761,12 +741,12 @@ An important aspect of the \emph{random-effects model} is the interplay between 
 
 }
 
-\caption{\color{red} Forest plots of two simulated \emph{random-effects model}s. On the left, the simulated model has \(nt,nc = 30\) for each included study, while on the right, the sample size for each study is \(nt,nc = 500\). Compared to Figure \ref{fig:equal-effects-high-low-precision}, data were generated under a \emph{random-effects model}. The estimated average effect is similar between the two scenarios regarding average effect and precision. However, compared to the \emph{equal-effects} simulation, increasing the sample size of primary studies only affects the precision without reducing the true heterogeneity (i.e., \(\tau^{2} \neq 0\)). \color{black}}\label{fig:random-effects-high-low-precision}
+\caption{Forest plots of two simulated \emph{random-effects model}s. On the left, the simulated model has \(nt,nc = 30\) for each included study, while on the right, the sample size for each study is \(nt,nc = 500\). Compared to Figure \ref{fig:equal-effects-high-low-precision}, data were generated under a \emph{random-effects model}. The estimated average effect is similar between the two scenarios regarding average effect and precision. However, compared to the \emph{equal-effects} simulation, increasing the sample size of primary studies only affects the precision without reducing the true heterogeneity (i.e., \(\tau^{2} \neq 0\)).}\label{fig:random-effects-high-low-precision}
 \end{figure}
 
 \normalsize
 
-The relationship between the sampling error and the heterogeneity can be expressed using the \(I^{2}\) statistics (e.g., Higgins \& Thompson, 2002) that is the percentage of the total variability \(\tau^{2} + \tilde{v}\) that is attributable to real heterogeneity between studies (\(\tau^{2}\)). \color{red} In Equation \eqref{eq:isquared}, \(\tilde{v}\) is the \emph{typical} within-study sampling variability (i.e., a summary statistics of sampling variances of included studies) as proposed by Higgins and Thompson (2002)\footnote{See \url{https://www.metafor-project.org/doku.php/tips:i2_multilevel_multivariate\#fn__1} for an overview of the \(I^2\) statistics also for complex models. There are also other proposals to compute the \(\tilde{v}\) statistics (see Takkouche, Cadarso-Suárez, \& Spiegelman, 1999; Takkouche, Khudyakov, Costa-Bouzas, \& Spiegelman, 2013)} and implemented in Equation \eqref{eq:typical-v} with \(w_i = 1/\sigma_{\epsilon_i}^{2}\) and \(k\) is the number of studies. \color{black}
+The relationship between the sampling error and the heterogeneity can be expressed using the \(I^{2}\) statistics (e.g., Higgins \& Thompson, 2002) that is the percentage of the total variability \(\tau^{2} + \tilde{v}\) that is attributable to real heterogeneity between studies (\(\tau^{2}\)). In Equation \eqref{eq:isquared}, \(\tilde{v}\) is the \emph{typical} within-study sampling variability (i.e., a summary statistics of sampling variances of included studies) as proposed by Higgins and Thompson (2002)\footnote{See \url{https://www.metafor-project.org/doku.php/tips:i2_multilevel_multivariate\#fn__1} for an overview of the \(I^2\) statistics also for complex models. There are also other proposals to compute the \(\tilde{v}\) statistics (see Takkouche, Cadarso-Suárez, \& Spiegelman, 1999; Takkouche, Khudyakov, Costa-Bouzas, \& Spiegelman, 2013)} and implemented in Equation \eqref{eq:typical-v} with \(w_i = 1/\sigma_{\epsilon_i}^{2}\) and \(k\) is the number of studies.
 
 \begin{align}
 \begin{gathered}
@@ -775,27 +755,18 @@ I^2 = \frac{\hat{\tau}^2}{\hat{\tau}^2 + \tilde{v}}
 \end{gathered}
 \end{align}
 
-\color{red}
-
 \begin{align}
 \begin{gathered}
 \tilde{v} = \frac{(k-1) \sum w_i}{(\sum w_i)^2 - \sum w_i^2}
 \label{eq:typical-v}
 \end{gathered}
 \end{align}
-\color{black}
 
-From Equation \eqref{eq:isquared} and Figure \ref{fig:random-effects-high-low-precision} is clear that if each included study has a considerable sample size \color{red} the sampling variability (\(\tilde{v}\)) will be reduced, and the total variability will be mainly driven by real heterogeneity (\(\tau^2\)) \color{black}. This is the crucial difference between the \textcolor{red}{equal-effects} and the random-effects model (see also Borenstein et al., 2009, pp. 117--122).
+From Equation \eqref{eq:isquared} and Figure \ref{fig:random-effects-high-low-precision} is clear that if each included study has a considerable sample size the sampling variability (\(\tilde{v}\)) will be reduced, and the total variability will be mainly driven by real heterogeneity (\(\tau^2\)) . This is the crucial difference between the equal-effects and the random-effects model (see also Borenstein et al., 2009, pp. 117--122).
 
-\color{red}
-
-Given the interpretation of \(I^{2}\) it is possible to simulate a meta-analysis fixing a certain \(I^{2}\) value. The only caveat is fixing the \(\tilde{v}\). When the sample size of each study is the same\footnote{\color{red} The assumption of studies with homogeneous sample sizes is commonly used to calculate the statistical power \color{black}(see Borenstein et al., 2009, Chapter 29)}, \(\tilde{v} = \sigma_{\epsilon_i}^{2}\). In the other case, \(\tilde{v}\) needs to be calculated from sampling variances as reported in Higgins and Thompson (2002) and cannot be easily fixed a priori. With the assumption of homogeneous sample size across studies\footnote{In case of heterogeneous sample sizes generated from a probability distribution (e.g., Gaussian) the \emph{typical} sampling variance calculated using the expected value of the distribution can be used to somehow fix the (average) \(I^2\) (see the supplementary materials for a simulated example)}, we can solve Equation \eqref{eq:isquared} for \(\tau^{2}\) obtaining the heterogeneity value associated with a certain \(I^{2}\) as reported in Equation \eqref{eq:tau2-from-isquared}.
-\color{black}
-
-\color{red}
+Given the interpretation of \(I^{2}\) it is possible to simulate a meta-analysis fixing a certain \(I^{2}\) value. The only caveat is fixing the \(\tilde{v}\). When the sample size of each study is the same\footnote{ The assumption of studies with homogeneous sample sizes is commonly used to calculate the statistical power (see Borenstein et al., 2009, Chapter 29)}, \(\tilde{v} = \sigma_{\epsilon_i}^{2}\). In the other case, \(\tilde{v}\) needs to be calculated from sampling variances as reported in Higgins and Thompson (2002) and cannot be easily fixed a priori. With the assumption of homogeneous sample size across studies\footnote{In case of heterogeneous sample sizes generated from a probability distribution (e.g., Gaussian) the \emph{typical} sampling variance calculated using the expected value of the distribution can be used to somehow fix the (average) \(I^2\) (see the supplementary materials for a simulated example)}, we can solve Equation \eqref{eq:isquared} for \(\tau^{2}\) obtaining the heterogeneity value associated with a certain \(I^{2}\) as reported in Equation \eqref{eq:tau2-from-isquared}.
 
 Table \ref{tab:res-random-effects-i2} depicts the results of the random-effects model fixing the \(I^{2}\) value. Choosing a meaningful \(\tau^2\) for the simulation can be sometimes difficult. Beyond fixing the \(I^2\) value, a possibility is choosing plausible \(\tau^2\) value from the literature. For example van Erp and colleagues (2017) estimate an empirical \(\tau^2\) distribution across several published meta-analyses that can be used to simulate a plausible scenario.
-\color{black}
 
 \begin{align}
 \begin{gathered}
@@ -862,7 +833,7 @@ From a linear regression perspective, both the EE and the RE models can be seen 
 
 }
 
-\caption{Graphical representation of a \emph{random-effects meta-regression} model with a categorical predictor (Condition A and Condition B). Each grey distribution represents the sampling distribution of included studies. The dotted line is the average effect (i.e., random-effects model without moderators). The effect size differs between conditions A and B, including the \emph{condition} moderator explaining part of the total heterogeneity (red plus green segments). The green segments depict the explained heterogeneity, and the red segments the residual (unexplained) heterogeneity. \color{red} The red squares are simulated observed effect sizes from the sampling distributions. \color{black}}\label{fig:img-metaregression-bin}
+\caption{Graphical representation of a \emph{random-effects meta-regression} model with a categorical predictor (Condition A and Condition B). Each grey distribution represents the sampling distribution of included studies. The dotted line is the average effect (i.e., random-effects model without moderators). The effect size differs between conditions A and B, including the \emph{condition} moderator explaining part of the total heterogeneity (pink plus green segments). The green segments depict the explained heterogeneity, and the pink segments the residual (unexplained) heterogeneity. The pink squares are simulated observed effect sizes from the sampling distributions.}\label{fig:img-metaregression-bin}
 \end{figure}
 
 \normalsize
@@ -884,7 +855,7 @@ heterogeneity. The rest of the Figure follows the same logic as Figure \ref{fig:
 \hypertarget{meta-regression-with-a-categorical-moderator}{%
 \subsubsection{Meta-regression with a categorical moderator}\label{meta-regression-with-a-categorical-moderator}}
 
-A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \eqref{eq:random-effects-model1} can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs.~lab-based) and the expected difference between the two levels of the moderator (i.e., the \emph{lab vs.~online effect}). In regression terms (see equation \eqref{eq:meta-regression}), we could use a dummy variable (\(X_{1}\)) that takes the value of 0 for the \emph{lab-based task} (\emph{L}) and a value of 1 for an \emph{online task} (\emph{O})\footnote{The \emph{dummy coding} (also known as treatment coding) is the default in R and \texttt{metafor} but other coding schemes could be used (see Schad, Vasishth, Hohenstein, \& Kliegl, 2020 for an overview of contrast coding schemes). \color{red} As in standard linear regression, the contrast coding of categorical factors or the presence/absence of the intercept influences the interpretation of estimated model parameters and omnibus meta-regression tests (see \url{https://www.metafor-project.org/doku.php/tips:models_with_or_without_intercept} for a detailed discussion)} \color{black}. Now we fix \(\beta_{1}\) to be the \emph{lab vs.~online effect} (i.e., the expected mean difference between the two groups of studies) and the product between \color{red}\(\beta_{1}X_{1_i}\) \color{black} will consider the \emph{lab vs.~online effect}. Crucially, despite \(\tau^{2}\) is still the heterogeneity between effect sizes, now we need to fix \(\tau^{2}\) considering that we included a moderator. In other terms, \color{red} \(\delta_i \sim \mathcal{N}(0, \tau_{r}^{2})\) \color{black} where \(\tau^2_r\) is the residual heterogeneity after including the moderator. We can describe our model using equation \eqref{eq:meta-regression-equations} according to the value of \(X_{1_i}\) (L = lab-based experiments, O = online experiments).
+A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \eqref{eq:random-effects-model1} can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs.~lab-based) and the expected difference between the two levels of the moderator (i.e., the \emph{lab vs.~online effect}). In regression terms (see equation \eqref{eq:meta-regression}), we could use a dummy variable (\(X_{1}\)) that takes the value of 0 for the \emph{lab-based task} (\emph{L}) and a value of 1 for an \emph{online task} (\emph{O})\footnote{The \emph{dummy coding} (also known as treatment coding) is the default in R and \texttt{metafor} but other coding schemes could be used (see Schad, Vasishth, Hohenstein, \& Kliegl, 2020 for an overview of contrast coding schemes). As in standard linear regression, the contrast coding of categorical factors or the presence/absence of the intercept influences the interpretation of estimated model parameters and omnibus meta-regression tests (see \url{https://www.metafor-project.org/doku.php/tips:models_with_or_without_intercept} for a detailed discussion)} . Now we fix \(\beta_{1}\) to be the \emph{lab vs.~online effect} (i.e., the expected mean difference between the two groups of studies) and the product between \(\beta_{1}X_{1_i}\) will consider the \emph{lab vs.~online effect}. Crucially, despite \(\tau^{2}\) is still the heterogeneity between effect sizes, now we need to fix \(\tau^{2}\) considering that we included a moderator. In other terms, \(\delta_i \sim \mathcal{N}(0, \tau_{r}^{2})\) where \(\tau^2_r\) is the residual heterogeneity after including the moderator. We can describe our model using equation \eqref{eq:meta-regression-equations} according to the value of \(X_{1_i}\) (L = lab-based experiments, O = online experiments).
 
 \begin{align}
 \begin{gathered}
@@ -926,13 +897,13 @@ We can simulate the same scenario of the random-effects model with \(k_O = 15\) 
 
 \normalsize
 
-Now we can fit the meta-regression model with the \texttt{rma} function as for the random-effects model with the addition of \texttt{mods\ =\ \textasciitilde{}\ exp} that indicates which variables to consider as moderators. The results are presented in Table \ref{tab:res-meta-reg-dummy}. Now the model will estimate an \emph{intercept} parameter (i.e., \(\beta_0\)) that is the value of \(y\) when \(X_1\) is zero (i.e., for lab-based studies) or in other terms the expected value for lab-based studies. Then the \(\beta_1\) parameter represents the estimated difference in \(y\) between the values of \(X_1\) (i.e., lab-based vs online experiments). As said before, \color{red} \(\tau^2_r\) \color{black} is now the residual heterogeneity that is interpreted as the variability between effect sizes after controlling for the moderator \(X_1\).
+Now we can fit the meta-regression model with the \texttt{rma} function as for the random-effects model with the addition of \texttt{mods\ =\ \textasciitilde{}\ exp} that indicates which variables to consider as moderators. The results are presented in Table \ref{tab:res-meta-reg-dummy}. Now the model will estimate an \emph{intercept} parameter (i.e., \(\beta_0\)) that is the value of \(y\) when \(X_1\) is zero (i.e., for lab-based studies) or in other terms the expected value for lab-based studies. Then the \(\beta_1\) parameter represents the estimated difference in \(y\) between the values of \(X_1\) (i.e., lab-based vs online experiments). As said before, \(\tau^2_r\) is now the residual heterogeneity that is interpreted as the variability between effect sizes after controlling for the moderator \(X_1\).
 
 \scriptsize
 
 \begin{table}[H]
 
-\caption{\label{tab:res-meta-reg-dummy}\color{red} Summary of the \emph{random-effect} model with a categorical predictor (lab vs online experiments). The \texttt{intercept} is the average effect for lab-based experiments and \texttt{exponline} is the difference between lab-based and online experiments. The \(R^2\) is the percentage of explained heterogeneity and \(\tau^2_r\) is the estimated residual heterogeneity. Other parameters are the same as the standard \emph{random-effect} model (see Table \ref{tab:res-random-effects}). \color{black}}
+\caption{\label{tab:res-meta-reg-dummy}Summary of the \emph{random-effect} model with a categorical predictor (lab vs online experiments). The \texttt{intercept} is the average effect for lab-based experiments and \texttt{exponline} is the difference between lab-based and online experiments. The \(R^2\) is the percentage of explained heterogeneity and \(\tau^2_r\) is the estimated residual heterogeneity. Other parameters are the same as the standard \emph{random-effect} model (see Table \ref{tab:res-random-effects}).}
 \centering
 \fontsize{9}{11}\selectfont
 \begin{tabular}[t]{ccccc}
@@ -954,7 +925,7 @@ exponline & 0.323 (SE = 0.143) & $[0.043, 0.602]$ & 2.263 & 0.024\\
 \hypertarget{meta-regression-with-a-numerical-moderator}{%
 \subsubsection{Meta-regression with a numerical moderator}\label{meta-regression-with-a-numerical-moderator}}
 
-The same approach can be used for a continuous predictor. For example, we can simulate that the average participant's age within each study could explain part of the observed heterogeneity. Now the \(X_1\) is a continuous predictor representing the average age for each study and \(\beta_1\) is the effect size increase for a unit increase (i.e., 1 year) of average age. Sometimes guessing a plausible \(\beta_1\) value with a continuous predictor is not straightforward. A first strategy could be to use values estimated from the literature. Another approach consists in setting up the model and simulating several expected \color{red} \(y_i\) \color{black} and calculating the range of simulated values. A third possibility is fixing the proportion of explained heterogeneity calculating the \(\beta_1\) value accordingly. As in standard regression analysis, we can use the \(R^2\) statistic to describe the amount of heterogeneity explained by the included moderators. Equation \eqref{eq:rsquared} reports how to calculate the \(R^2\) for a meta-regression model. The \(\tau^2_{r}\) is the residual heterogeneity after considering the moderators and \(\tau^2_{f}\) is the heterogeneity estimated without considering the moderators. In the next sections, we will present an example of the simulation-based and the \(R^2\) based approaches.
+The same approach can be used for a continuous predictor. For example, we can simulate that the average participant's age within each study could explain part of the observed heterogeneity. Now the \(X_1\) is a continuous predictor representing the average age for each study and \(\beta_1\) is the effect size increase for a unit increase (i.e., 1 year) of average age. Sometimes guessing a plausible \(\beta_1\) value with a continuous predictor is not straightforward. A first strategy could be to use values estimated from the literature. Another approach consists in setting up the model and simulating several expected \(y_i\) and calculating the range of simulated values. A third possibility is fixing the proportion of explained heterogeneity calculating the \(\beta_1\) value accordingly. As in standard regression analysis, we can use the \(R^2\) statistic to describe the amount of heterogeneity explained by the included moderators. Equation \eqref{eq:rsquared} reports how to calculate the \(R^2\) for a meta-regression model. The \(\tau^2_{r}\) is the residual heterogeneity after considering the moderators and \(\tau^2_{f}\) is the heterogeneity estimated without considering the moderators. In the next sections, we will present an example of the simulation-based and the \(R^2\) based approaches.
 
 \begin{align}
 \begin{aligned}
@@ -1007,7 +978,7 @@ As reported in the previous section, a strategy to guess plausible values for \(
 
 }
 
-\caption{\color{red} Scatter plots with marginal histograms for the range of simulated \(y_i\) with two \(\beta_1\) values. The x-axis depicts the average age of simulated studies and the y-axis depicts the simulated effect size. On the left, the majority of simulated values range between -1.5 and 1.5 thus \(\beta_1 = 0.1\) can be considered a plausible value. On the right, (\(\beta = 0.7\)) values range between -10 to 10 that despite theoretically possible can be considered highly implausible values in real meta-analyses for psychological data. \color{black}}\label{fig:plot-meta-reg-plausible-implausible}
+\caption{Scatter plots with marginal histograms for the range of simulated \(y_i\) with two \(\beta_1\) values. The x-axis depicts the average age of simulated studies and the y-axis depicts the simulated effect size. On the left, the majority of simulated values range between -1.5 and 1.5 thus \(\beta_1 = 0.1\) can be considered a plausible value. On the right, (\(\beta = 0.7\)) values range between -10 to 10 that despite theoretically possible can be considered highly implausible values in real meta-analyses for psychological data.}\label{fig:plot-meta-reg-plausible-implausible}
 \end{figure}
 
 \normalsize
@@ -1065,7 +1036,7 @@ Now we can simulate the regression model using \(\sqrt{\beta^2_1}\) as coefficie
 
 \begin{table}[H]
 
-\caption{\label{tab:res-meta-reg-numerical-r2}\color{red} Summary of the \emph{random-effects} model fixing the \(R^{2}\) value. The \texttt{intercept} is the effect size for the average \texttt{age} (given that age is mean-centered). The \texttt{age0} parameter is the slope between \texttt{age} and the effect size interpreted as an increase in effect size for a unit increase in the average age. Other parameters are the same as described in Table \ref{tab:res-random-effects} and \ref{tab:res-meta-reg-dummy}. \color{black}}
+\caption{\label{tab:res-meta-reg-numerical-r2}Summary of the \emph{random-effects} model fixing the \(R^{2}\) value. The \texttt{intercept} is the effect size for the average \texttt{age} (given that age is mean-centered). The \texttt{age0} parameter is the slope between \texttt{age} and the effect size interpreted as an increase in effect size for a unit increase in the average age. Other parameters are the same as described in Table \ref{tab:res-random-effects} and \ref{tab:res-meta-reg-dummy}.}
 \centering
 \fontsize{9}{11}\selectfont
 \begin{tabular}[t]{ccccc}
@@ -1100,9 +1071,9 @@ age0 & 0.168 (SE = 0.051) & $[0.067, 0.268]$ & 3.272 & 0.001\\
 \hypertarget{power-analysis}{%
 \section{Power Analysis}\label{power-analysis}}
 
-The previous simulation examples can be easily implemented for multiple purposes. For example, we can use different effect sizes and variance estimators when using the \texttt{sim\_study()} function to check the impact on the fitted meta-analysis model. However, one of the most critical applications is estimating the power of a specific statistical model. \color{red} One of the purposes of power analysis by simulations is to estimate the required number of studies to detect an hypothetical effect size when planning a meta-analysis. At the same time, the meta-analysis that we presented (\emph{two-level} equal or random-effects model) can be considered as a multi-lab (e.g., Klein et al., 2018) study where experiments are planned and not collected from the literature. We can use the same simulation approach to optimize the number of participants and studies when planning a multi-lab project. \color{black}
+The previous simulation examples can be easily implemented for multiple purposes. For example, we can use different effect sizes and variance estimators when using the \texttt{sim\_study()} function to check the impact on the fitted meta-analysis model. However, one of the most critical applications is estimating the power of a specific statistical model. One of the purposes of power analysis by simulations is to estimate the required number of studies to detect an hypothetical effect size when planning a meta-analysis. At the same time, the meta-analysis that we presented (\emph{two-level} equal or random-effects model) can be considered as a multi-lab (e.g., Klein et al., 2018) study where experiments are planned and not collected from the literature. We can use the same simulation approach to optimize the number of participants and studies when planning a multi-lab project.
 
-As explained in the introduction, there are several approaches and tools to estimate the power of \emph{equal} and \emph{random-effects models} (see Borenstein et al., 2009, Chapter 29; Harrer, Cuijpers, \& Ebert, 2019, Chapter 14). These methods are easy to implement but made strong assumptions, such as the homogeneity of sample size, and did not consider the uncertainty in estimating \(\tau^{2}\). Jackson and colleagues (2017) partially solve the issue by developing an interesting method that takes into account the uncertainty in estimating \(\tau^{2}\) without using simulations. \textcolor{red}{However, complex simulation scenarios can be handled only using Monte Carlo methods.}
+As explained in the introduction, there are several approaches and tools to estimate the power of \emph{equal} and \emph{random-effects models} (see Borenstein et al., 2009, Chapter 29; Harrer et al., 2019, Chapter 14). These methods are easy to implement but made strong assumptions, such as the homogeneity of sample size, and did not consider the uncertainty in estimating \(\tau^{2}\). Jackson and colleagues (2017) partially solve the issue by developing an interesting method that takes into account the uncertainty in estimating \(\tau^{2}\) without using simulations. However, complex simulation scenarios can be handled only using Monte Carlo methods.
 
 A general Monte Carlo simulation for the power analysis can be implemented with the following steps:
 
@@ -1234,7 +1205,7 @@ k & \multicolumn{1}{c}{$\Delta$} & \multicolumn{1}{c}{$\tau^2$} & \multicolumn{1
 
 }
 
-\caption{Results from the \emph{random-effects model} power analysis. The x-axis depicts the number of studies (\(k\)), and the y-axis the estimated power. The red dotted line is the 80\% power level, usually considered a good value for power analysis.}\label{fig:plot-power-analysis}
+\caption{Results from the \emph{random-effects model} power analysis. The x-axis depicts the number of studies (\(k\)), and the y-axis the estimated power. The pink dotted line is the 80\% power level, usually considered a good value for power analysis.}\label{fig:plot-power-analysis}
 \end{figure}
 
 \normalsize
@@ -1242,9 +1213,9 @@ k & \multicolumn{1}{c}{$\Delta$} & \multicolumn{1}{c}{$\tau^2$} & \multicolumn{1
 \hypertarget{conclusions}{%
 \section{Conclusions}\label{conclusions}}
 
-The present work introduced the basic concepts of the meta-analysis regarding equal-effects, random-effects and meta-regression models with a simulation-based approach. \textcolor{red}{We believe the presented examples are useful to implement alternative or more complex models}. For example, the \texttt{sim\_study()} function can be easily modified to simulate another effect sizes index, \color{red} such as correlations or odds ratios. \color{black} In addition, more complex models, such as \emph{multivariate} or \emph{multilevel} models, can be simulated following a similar approach (see \textcolor{red}{the} supplementary materials). The \color{red} \emph{multilevel} (e.g., \emph{three-level}) \color{black} model estimates another heterogeneity component representing the variability of multiple \textcolor{red}{independent} effect sizes \textcolor{red}{within} the same study. Similarly, the \emph{multivariate} model \textcolor{red}{includes} the correlation between multiple outcomes and the correlation between sampling errors.
+The present work introduced the basic concepts of the meta-analysis regarding equal-effects, random-effects and meta-regression models with a simulation-based approach. We believe the presented examples are useful to implement alternative or more complex models. For example, the \texttt{sim\_study()} function can be easily modified to simulate another effect sizes index, such as correlations or odds ratios. In addition, more complex models, such as \emph{multivariate} or \emph{multilevel} models, can be simulated following a similar approach (see the supplementary materials). The \emph{multilevel} (e.g., \emph{three-level}) model estimates another heterogeneity component representing the variability of multiple independent effect sizes within the same study. Similarly, the \emph{multivariate} model includes the correlation between multiple outcomes and the correlation between sampling errors.
 
-The present work did have a few limitations. \textcolor{red}{Firstly}, we only introduced basic concepts about meta-analysis and Monte Carlo simulations, while setting up complex simulations requires more knowledge and complexity of the simulation setup. We decided to give the foundations to understand meta-analyses with a simulation approach because more complex models are still based on the same principles. Second, there are limitations concerning simulating participant-level data. We decided to simulate the meta-analysis data starting from the participants' level to maximize the flexibility and clearness of each step. The downside concerns the efficiency and scalability of the simulation setup. For large-scale simulations (e.g., many conditions, iterations, or complex models), simulating from aggregated statistics is probably more efficient (see Heuvel, Almalik, \& Zhan, 2020 for an example) to improve the \textcolor{red}{simulation efficency}\footnote{See \url{https://www.jepusto.com/simulating-correlated-smds/} for a very clear example of the participant-level vs aggregated data simulation approaches}.
+The present work did have a few limitations. Firstly, we only introduced basic concepts about meta-analysis and Monte Carlo simulations, while setting up complex simulations requires more knowledge and complexity of the simulation setup. We decided to give the foundations to understand meta-analyses with a simulation approach because more complex models are still based on the same principles. Second, there are limitations concerning simulating participant-level data. We decided to simulate the meta-analysis data starting from the participants' level to maximize the flexibility and clearness of each step. The downside concerns the efficiency and scalability of the simulation setup. For large-scale simulations (e.g., many conditions, iterations, or complex models), simulating from aggregated statistics is probably more efficient (see Heuvel, Almalik, \& Zhan, 2020 for an example) to improve the simulation efficency\footnote{See \url{https://www.jepusto.com/simulating-correlated-smds/} for a very clear example of the participant-level vs aggregated data simulation approaches}.
 
 In conclusion, data simulation is a very powerful tool for each step of a data analysis process. Starting from the learning phase, where simulating data can be used to understand the statistical model in terms of assumptions and the data generation process, to the estimation of statistical power. Moreover, we believe that data simulation as part of a standard research workflow could improve the overall research quality. Data simulation requires understanding the statistical model, setting appropriate and reasoned parameters, and realizing how the chosen analysis method behaves across different scenarios.
 
@@ -1254,7 +1225,7 @@ In conclusion, data simulation is a very powerful tool for each step of a data a
 \subsubsection*{Acknowledgments}\label{acknowledgments}}
 \addcontentsline{toc}{subsubsection}{Acknowledgments}
 
-We thank the \emph{\href{https://stat.ethz.ch/mailman/listinfo/r-sig-meta-analysis}{R-sig-meta-analysis}} mailing-list. \textcolor{red}{Their} suggestions and clarifications significantly improved \textcolor{red}{the} simulations approach and the R code.
+We thank the \emph{\href{https://stat.ethz.ch/mailman/listinfo/r-sig-meta-analysis}{R-sig-meta-analysis}} mailing-list. Their suggestions and clarifications significantly improved the simulations approach and the R code.
 
 \hypertarget{conflicts-of-interest}{%
 \subsubsection*{Conflicts of Interest}\label{conflicts-of-interest}}
@@ -1266,13 +1237,13 @@ The author(s) declare that there were no conflicts of interest with respect to t
 \subsubsection*{Data, materials, and online resources}\label{data-materials-and-online-resources}}
 \addcontentsline{toc}{subsubsection}{Data, materials, and online resources}
 
-The code to reproduce simulations, figures and tables can be found on Open Science Framework (\url{https://osf.io/54djn/}) \color{red} and Github (\url{https://github.com/shared-research/simulating-meta-analysis}). \color{black}
+The code to reproduce simulations, figures and tables can be found on Open Science Framework (\url{https://osf.io/54djn/}) and Github (\url{https://github.com/shared-research/simulating-meta-analysis}).
 
 \hypertarget{supplemental-material}{%
 \subsubsection*{Supplemental Material}\label{supplemental-material}}
 \addcontentsline{toc}{subsubsection}{Supplemental Material}
 
-The supplementary materials can be also found on the Open Science Framework repository (\url{https://osf.io/54djn/}) \color{red} and Github (\url{https://github.com/shared-research/simulating-meta-analysis}). \color{black}
+The supplementary materials can be also found on the Open Science Framework repository (\url{https://osf.io/54djn/}) and Github (\url{https://github.com/shared-research/simulating-meta-analysis}).
 
 \hypertarget{prior-versions}{%
 \subsubsection*{Prior versions}\label{prior-versions}}
