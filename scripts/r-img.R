@@ -15,6 +15,12 @@ theme_rfig <- function(size = 15){
   ltxplot::theme_latex(base_size = size)
 }
 
+# color-blind-friendly palettes see http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+
+cb_blue <- "#0072B2"
+cb_red <- "#CC79A7"
+cb_green <- "#009E73"
+
 # Equal-vs-Random Effect --------------------------------------------------
 
 equal_effects <- data.frame(
@@ -63,7 +69,7 @@ p_equal_down <- ggplot(filter(models, model == "Equal-Effects"), aes(y = factor(
   geom_label(aes(x = di, y = 0.6, label = note), parse = TRUE, size = 7, label.size = NA) +
   geom_segment(aes(x = di + delta, xend = di, y = id-0.08, yend = id-0.08),
                position = position_dodge2(width = 1, padding = 1)) +
-  geom_point(aes(x = obs, y = factor(id)), color = "firebrick2", size = 2, shape = 15) +
+  geom_point(aes(x = obs, y = factor(id)), color = cb_red, size = 2, shape = 15) +
   geom_point(aes(x = yi, y = id-0.08, alpha = model), show.legend = FALSE) +
   scale_alpha_manual(values = c(0, 1))
 
@@ -87,7 +93,7 @@ p_random_down <- ggplot(filter(models, model == "Random-Effects"), aes(y = facto
   geom_label(aes(x = di, y = 0.6, label = note), parse = TRUE, size = 7, label.size = NA) +
   # geom_segment(aes(x = di + delta, xend = di, y = id-0.08, yend = id-0.08),
   #              position = position_dodge2(width = 1, padding = 1)) +
-  geom_point(aes(x = obs, y = factor(id)), color = "firebrick2", size = 2, shape = 15) +
+  geom_point(aes(x = obs, y = factor(id)), color = cb_red, size = 2, shape = 15) +
   geom_point(aes(x = yi, y = id-0.08, alpha = model), show.legend = FALSE) +
   scale_alpha_manual(values = c(0, 1)) +
   geom_segment(aes(x = di + delta, xend = di + delta,
@@ -124,7 +130,7 @@ p_up_left <- ggplot(up_left) +
         axis.ticks.y = element_blank())
 
 p_up_right <- ggplot(up_right) +
-  stat_halfeye(aes(y = id, dist = dist), .width = 0.95, fill = "#7FB3D5") +
+  stat_halfeye(aes(y = id, dist = dist), .width = 0.95, fill = cb_blue) +
   ylim(c(1, 5)) +
   xlim(c(-1, 2)) +
   cowplot::theme_nothing() +
@@ -179,9 +185,9 @@ binary_metareg$obs <- rnorm(nrow(binary_metareg), binary_metareg$yi, sqrt(binary
 plot_metareg_bin <- ggplot(binary_metareg,
                            aes(y = id)) +
   geom_segment(aes(x = gm, xend = obs, y = id-0.2, yend = id-0.2),
-               color = "darkgreen", size = 1) +
+               color = cb_green, linewidth = 1) +
   geom_segment(aes(x = cond_mean, xend = obs, y = id-0.2, yend = id-0.2),
-               color = "firebrick", size = 1) +
+               color = cb_red, linewidth = 1) +
   geom_vline(xintercept = mm) +
   geom_vline(xintercept = mean(binary_metareg$cond_mean), linetype = "dashed") +
   stat_dist_halfeye(aes(dist = dist),
@@ -199,13 +205,13 @@ plot_metareg_bin <- ggplot(binary_metareg,
   xlim(xlim) +
   annotate("text", x = 1, y = 1.5, 
            label = TeX("\\textbf{Residual $\\tau^2$}"), 
-           parse = TRUE, color = "firebrick", 
+           parse = TRUE, color = cb_red, 
            family = "bold", size = 8) +
   annotate("text", x = 1, y = 2, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
-           parse = TRUE, color = "darkgreen", 
+           parse = TRUE, color = cb_green, 
            family = "bold", size = 8) +
-  geom_point(aes(x = obs, y = id), color = "firebrick", shape = 15, size = 2.5)
+  geom_point(aes(x = obs, y = id), color = cb_red, shape = 15, size = 2.5)
 
 # Metaregression with numerical predictor ---------------------------------
 
@@ -236,13 +242,13 @@ set.seed(2027)
 cont_metareg$obs <- rnorm(nrow(cont_metareg), cont_metareg$yi, sqrt(cont_metareg$vi))
 
 plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
-  geom_segment(aes(x = x-0.1, xend = x-0.1, y = pi, yend = obs), color = "firebrick", linewidth = 1) +
-  geom_segment(aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), color = "darkgreen", linewidth = 1) +
+  geom_segment(aes(x = x-0.1, xend = x-0.1, y = pi, yend = obs), color = cb_red, linewidth = 1) +
+  geom_segment(aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), color = cb_green, linewidth = 1) +
   geom_segment(data = filter(cont_metareg, obs < pi & obs > gm), aes(x = x-0.1, xend = x-0.1, y = gm, yend = pi), 
-               color = "darkgreen", linewidth = 1) +
+               color = cb_green, linewidth = 1) +
   geom_segment(data = filter(cont_metareg, obs < pi & obs > gm),
                aes(x = x-0.1, xend = x-0.1, y = pi, yend = obs), 
-               color = "firebrick", linewidth = 1) +
+               color = cb_red, linewidth = 1) +
   geom_hline(yintercept = mean(cont_metareg$yi), linetype = "dashed") +
   stat_halfeye(aes(dist = dist),
                show.legend = FALSE,
@@ -257,13 +263,13 @@ plot_metareg_cont <- ggplot(cont_metareg, aes(x = x, y = yi)) +
   ggtitle("Numerical Predictor") +
   annotate("text", x = 6.5, y = 0.25,
            label = TeX("\\textbf{Residual $\\tau^2$}"), 
-           parse = TRUE, color = "firebrick", size = 8,
+           parse = TRUE, color = cb_red, size = 8,
            family = "lmroman") +
   annotate("text", x = 6.5, y = 0.3, 
            label = TeX("\\textbf{Explained $\\tau^2$}"), 
-           parse = TRUE, color = "darkgreen", size = 8,
+           parse = TRUE, color = cb_green, size = 8,
            family = "lmroman") +
-  geom_point(aes(x = x, y = obs), color = "firebrick", shape = 15, size = 2.5)
+  geom_point(aes(x = x, y = obs), color = cb_red, shape = 15, size = 2.5)
 
 # Saving ------------------------------------------------------------------
 
