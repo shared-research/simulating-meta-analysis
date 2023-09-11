@@ -37,7 +37,7 @@ The repository (`documents/` folder) contains the paper and supplementary materi
 | **Document** | **Rendered** | **Source** |
 |---|---|---|
 | Paper | [pdf](documents/paper/paper.pdf) | [rmd](documents/paper/paper.Rmd) |
-| Supplementary Materials | [pdf](documents/paper/supplementary.pdf) | [rmd](documents/paper/supplementary.Rmd) |
+| Supplementary Materials | [pdf](documents/paper/suppl.pdf) | [rmd](documents/paper/suppl.Rmd) |
 
 ## Repository
 
