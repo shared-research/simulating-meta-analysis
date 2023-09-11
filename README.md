@@ -30,10 +30,10 @@ supplementary materials created using R Markdown and the
 [`papaja`](https://cran.r-project.org/web/packages/papaja/index.html)
 package.
 
-| **Document**            | **Rendered**                     | **Source**                       |
-|-------------------------|----------------------------------|----------------------------------|
-| Paper                   | [pdf](documents/paper/paper.pdf) | [rmd](documents/paper/paper.Rmd) |
-| Supplementary Materials | [pdf](documents/paper/suppl.pdf) | [rmd](documents/paper/suppl.Rmd) |
+| **Document**            | **Rendered**                      | **Source**                       |
+|-------------------------|-----------------------------------|----------------------------------|
+| Paper                   | [pdf](documents/output/paper.pdf) | [rmd](documents/paper/paper.Rmd) |
+| Supplementary Materials | [pdf](documents/output/suppl.pdf) | [rmd](documents/paper/suppl.Rmd) |
 
 ## Repository
 
