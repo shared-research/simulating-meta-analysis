@@ -48,7 +48,7 @@ The project is organized as follows:
   - `scripts\r-img.R`: create the paper figures. Figures that are not
     created in this script using `ggplot2` are created with the
     open-source program [*Inkscape*](https://inkscape.org/) and
-    contained in the `../img/` folders.
+    contained in the `**/img/` folder.
 - `objects`: contains the result of objects created by the `scripts/`
   scripts.
 
