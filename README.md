@@ -30,9 +30,10 @@ supplementary materials created using R Markdown and the
 [`papaja`](https://cran.r-project.org/web/packages/papaja/index.html)
 package.
 
-- Paper [PDF](documents/paper/paper.pdf)
-- Supplementary Materials
-  [PDF](documents/supplementary/supplementary.pdf)
+|                   |                                                  |                                                  |
+|-------------------|--------------------------------------------------|--------------------------------------------------|
+| **Paper**         | [pdf](documents/paper/paper.pdf)                 | [rmd](documents/paper/paper.Rmd)                 |
+| **Supplementary** | [pdf](documents/supplementary/supplementary.pdf) | [rmd](documents/supplementary/supplementary.Rmd) |
 
 ## Repository
 
@@ -62,44 +63,44 @@ and $n$ values and check the recovery of simulated parameters using the
 
 ## Session info
 
-    #> version: R version 4.2.3 (2023-03-15 ucrt)
+    #> version: R version 4.3.1 (2023-06-16 ucrt)
     #> os: Windows 10 x64 (build 19045)
     #> system: x86_64, mingw32
     #> ui: RTerm
     #> language: (EN)
     #> collate: English_United States.utf8
     #> ctype: English_United States.utf8
-    #> tz: Europe/Berlin
+    #> tz: Europe/Rome
     #> pandoc: 3.1.1 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ## Packages
 
-- `dplyr` (1.1.1)
+- `dplyr` (1.1.2)
 - `tidyr` (1.3.0)
 - `ggplot2` (3.4.2)
-- `metafor` (4.0.0)
-- `MASS` (7.3.58.2)
-- `cli` (3.6.0)
-- `knitr` (1.42.1)
-- `rmarkdown` (2.20)
-- `papaja` (0.1.1.9001)
+- `metafor` (4.2.0)
+- `MASS` (7.3.60)
+- `cli` (3.6.1)
+- `rmarkdown` (2.23)
+- `papaja` (0.1.1)
+- `knitr` (1.43)
 - `devtools` (2.4.5)
 - `here` (1.0.1)
-- `kableExtra` (1.3.4)
+- `kableExtra` (1.3.4.9000)
 - `latex2exp` (0.9.6)
 - `ltxplot` (1.0.0)
 - `tibble` (3.2.1)
 - `ggExtra` (0.10.0)
 - `ggthemes` (4.2.4)
 - `gridExtra` (2.3)
-- `purrr` (1.0.1)
-- `bookdown` (0.33)
-- `broom` (1.0.4)
-- `renv` (0.17.2)
+- `purrr` (1.0.2)
+- `bookdown` (0.35)
+- `broom` (1.0.5)
+- `renv` (1.0.1)
 - `stringr` (1.5.0)
 - `simulatingMeta` (1.0.0)
 - `sessioninfo` (1.2.2)
 - `cowplot` (1.1.1)
 - `distributional` (0.3.2)
-- `ggdist` (3.2.1)
+- `ggdist` (3.3.0)
 - `tidyverse` (2.0.0)

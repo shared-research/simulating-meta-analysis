@@ -25,7 +25,7 @@ pkgs <- simulatingMeta:::.get_packages()
 <!-- badges: end -->
 
 This repository contains the code to reproduce the analysis of the paper **Understanding meta-analysis through data simulation with applications to power analysis** by Gambarota Filippo and Gianmarco Altoè. The project can also be found on the Open Science Framework https://osf.io/54djn/ with a preprint uploaded on PsyArXiv [https://psyarxiv.com/br6vy/](https://psyarxiv.com/br6vy/).
-
+  
 ## Usage
 
 Functions used in the paper and supplementary materials are documented and can be used opening the `simulating-meta-analysis.Rproj` file and using the `devtools::load_all()` function (this requires the `devtools` package installed). Then each function will be available as using a standard R package.
@@ -34,8 +34,11 @@ Functions used in the paper and supplementary materials are documented and can b
 
 The repository (`documents/` folder) contains the paper and supplementary materials created using R Markdown and the [`papaja`](https://cran.r-project.org/web/packages/papaja/index.html) package.
 
-- Paper [PDF](documents/paper/paper.pdf)
-- Supplementary Materials [PDF](documents/supplementary/supplementary.pdf)
+|               |                                                  |                                                  |
+|---------------|--------------------------------------------------|--------------------------------------------------|
+| **Paper**         | [pdf](documents/paper/paper.pdf)                 | [rmd](documents/paper/paper.Rmd)                 |
+| **Supplementary** | [pdf](documents/supplementary/supplementary.pdf) | [rmd](documents/supplementary/supplementary.Rmd) |
+
 
 ## Repository
 
