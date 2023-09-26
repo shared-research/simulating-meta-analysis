@@ -58,3 +58,5 @@ preprint.pdf
 *local-*
 submission-figures/
 *-tikzDictionary
+*.log
+paper.zip

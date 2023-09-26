@@ -24,7 +24,7 @@ sim_study <- function(es, nt, nc = NULL, aggregate = TRUE){
   yi <- (mean(yt) - mean(yc))
   
   # sampling variance
-  vi <- var(yt)/nt + var(yt)/nc
+  vi <- var(yt)/nt + var(yc)/nc
   
   if(!aggregate){
     # return raw data
