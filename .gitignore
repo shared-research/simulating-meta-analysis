@@ -60,3 +60,6 @@ submission-figures/
 *-tikzDictionary
 *.log
 paper.zip
+submission/
+*.ttt
+*.fff
