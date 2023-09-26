@@ -31,7 +31,7 @@ wordcount         : 7869
 bibliography      : "../files/references.bib"
 floatsintext      : yes
 figsintext        : yes
-linenumbers       : "`r params$linenumbers`"
+linenumbers       : no
 draft             : no
 mask              : no
 figurelist        : no
@@ -51,9 +51,6 @@ documentclass     : "apa6"
 output            :
   papaja::apa6_pdf:
     latex_engine: xelatex
-params: 
-  linenumbers: "yes"
-  finalsection: TRUE
 ---
 
 ```{r setup, include = FALSE}
@@ -61,7 +58,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.align = "center",
                       out.width = "80%",
                       fig.width = 7,
-                      size = "scriptsize",
+                      size = "scriptsize", 
                       fig.asp = 0.618,
                       warning = FALSE,
                       message = FALSE,
@@ -90,10 +87,10 @@ library(kableExtra)
 library(here)
 library(latex2exp)
 library(ltxplot)
+devtools::load_all()
 
 rcit <- sprintf("(version %s.%s; R Core Team, %s)", R.version$major, R.version$minor, R.version$year)
 ltxplot::load_theme_ltx()
-devtools::load_all()
 seed <- 2023 # general seed for all simulations
 ```
 
@@ -155,8 +152,6 @@ As reported in the previous section, beyond the effect size of each study, we ne
 
 
 The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can find essentially three meta-analysis models: the equal-effects, the fixed-effects, and the random-effects model [@Laird1990-ro; @Hedges1998-uo]. The *equal-effects* model assumes that each study included in the meta-analysis is a more or less precise estimation of the true underlying effect ($\theta$). In other terms, we are assuming that there is no variability (i.e., heterogeneity) among true effect sizes. On the other side, suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In this case, we have true variability (i.e., heterogeneity) among studies. The *random-effects* model assumes a distribution of real effects with mean $\mu_{\theta}$ and variance $\tau^{2}$ thus estimating the heterogeneity. Finally, the *fixed-effects* model estimate the average effect of the included pool of studies ignoring the presence of heterogeneity. While the distinction between the equal and fixed-effects model is theoretical, the estimated model is the exactly the same^[See [wviechtb.github.io/metafor/reference/misc-models.html](https://wviechtb.github.io/metafor/reference/misc-models.html) for a detailed explanation]. The *random-effects* model assumes and estimates heterogeneity among effect sizes leading to different model parameters. From an inferential point of view, the *random-effects* model provides unconditional inference to the population of effect sizes while the *fixed-effects* model estimates the average effect of the selected studies and not population-level parameters. The *equal-effects* model assumes a single true population effect to be estimated. Figure \@ref(fig:img-equal-vs-random) depicts the theoretical distinction between the equal and random-effects model. In the presence of heterogeneity, we can include moderators (e.g., the type of experimental setup) into a meta-regression model to explain the effect size heterogeneity.  An interesting proposal to combine evidence from these different models into a single analysis is called Bayesian model-averaged meta-analysis [@Gronau2021-do; @Berkhout2023-fj]. However, this model is beyond the scope of the tutorial. 
-
-
 
 ```{r img-equal-vs-random, echo=FALSE, fig.asp=1, fig.cap=get_caption()}
 r_imgs$equal_vs_random
@@ -289,8 +284,6 @@ sim |>
   trim_df(2) |> 
   qtab(caption = get_caption())
 ```
-
-
 
 ```{r notation-tab, echo=FALSE, result = "asis"}
 notation_table <- tibble::tribble(

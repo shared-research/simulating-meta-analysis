@@ -102,28 +102,38 @@
   \let\oldsubparagraph\subparagraph
   \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
 \newlength{\csllabelwidth}
 \setlength{\csllabelwidth}{3em}
-\newlength{\cslentryspacingunit} % times entry-spacing
-\setlength{\cslentryspacingunit}{\parskip}
-\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
- {% don't indent paragraphs
-  \setlength{\parindent}{0pt}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
   % turn on hanging indent if param 1 is 1
   \ifodd #1
-  \let\oldpar\par
-  \def\par{\hangindent=\cslhangindent\oldpar}
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
   \fi
   % set entry spacing
-  \setlength{\parskip}{#2\cslentryspacingunit}
- }%
- {}
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
 \usepackage{calc}
-\newcommand{\CSLBlock}[1]{#1\hfill\break}
-\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
-\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLBlock}[1]{\hfill\break#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
@@ -247,8 +257,7 @@ Meta-analysis is a powerful tool to combine evidence from existing literature. D
 
 \setcounter{secnumdepth}{5}
 
-\hypertarget{introduction}{%
-\section{Introduction}\label{introduction}}
+\section{Introduction}\label{introduction}
 
 \begin{quote}
 ``If you do not simulate it, you have not understood it.''
@@ -264,23 +273,20 @@ The aim of the tutorial is not to provide a complete theoretical introduction to
 
 We assume the reader is familiar with the basic concepts of R, but core functions will be explained. Code and materials are available on the OSF repository (\url{https://osf.io/54djn/}). A theoretical introduction, simulation examples for multivariate and multilevel models, and more details about the coding approach are available in the supplementary materials.
 
-\hypertarget{meta-analysis-introduction}{%
-\subsection{Meta-analysis introduction}\label{meta-analysis-introduction}}
+\subsection{Meta-analysis introduction}\label{meta-analysis-introduction}
 
 The meta-analysis is a statistical procedure to combine multiple studies (i.e., \emph{primary studies}) into a single statistical analysis (Borenstein et al., 2009). The idea is that combining numerous preliminary studies improve the estimation of a particular phenomenon more efficiently compared to conducting a single study. In statistical terms, the concept of the meta-analysis is to switch the statistical unit from the single participant or observation (i.e., \emph{level 1}) to the study (i.e., \emph{level 2}). Given that some studies will give more information because their estimation variability is smaller (e.g., higher sample size), the meta-analysis combines the studies assigning more weight as a function of the precision (i.e., the inverse of the variance).
 
 As an example that will be used throughout the paper, we consider the efficacy of memory training in improving memory performance during a cognitive task. The typical primary study will collect data from a group of participants receiving the memory training (\emph{experimental group}) and another group receiving a control treatment (\emph{control group}). The focus of the meta-analysis is collecting multiple studies with similar aims and methods and estimating the average effect of memory training. Despite differences in the type of cognitive task or experimental setup, each primary study collects an \emph{experimental group} (\(n_{T}\)) and \emph{control group} (\(n_{C}\)) and computes the average performance (\emph{experimental group} \(\overline T\) and \emph{control group} \(\overline C\)) and standard deviations (\emph{experimental group} \(s_{T}\) and \emph{control group}
 \(s_{C}\)).
 
-\hypertarget{effect-size-and-variance}{%
-\subsubsection{Effect size and variance}\label{effect-size-and-variance}}
+\subsubsection{Effect size and variance}\label{effect-size-and-variance}
 
 The first step of a meta-analysis is to extract information from included studies. This common measure should give an immediate idea of the direction (i.e., the treatment improves or reduces performance) and the size of the effect. Standardized effect size measures (see Lakens, 2013 for an overview), such as the Standardized Mean Difference (SMD), which could be estimated by Cohen's \(d\) (Cohen, 1988) or the Pearson correlation coefficient \(\rho\) which could be calculated using the associated sample estimator \emph{r} are commonly used to compare heterogeneous outcome variables\footnote{ When using bounded effect sizes such as the Pearson correlation, Fisher Z-transformation is commonly used (Borenstein et al., 2009, pp. 41--43)}. If all studies used the same raw measure, such as reaction times, it is possible to directly meta-analyze the studies without standardizing e.g.~using the unstandardized mean difference (UMD, Borenstein et al., 2009, pp. 21--24).
 
 As reported in the previous section, beyond the effect size of each study, we need to assign a weight according to the precision. For this reason, we need to calculate the sampling variability of the effect size or the raw measure that will represent the estimation precision. Each raw or standardized effect size measure (e.g., raw mean difference, Cohen's \(d\), and Pearson's correlation) has a different formula to calculate the sampling variability. The idea is to choose the appropriate measure considering the study design (e.g., between vs.~within-subjects) and available information and find the proper formula to compute the sampling variability. In addition, there are formulas and approaches to convert from one effect size measure to another (Borenstein et al., 2009; Lakens, 2013; Lipsey \& Wilson, 2001).\footnote{See also the blog post by James Pustejovsky (\href{https://www.jepusto.com/alternative-formulas-for-the-smd/}{www.jepusto.com/alternative-formulas-for-the-smd}) for a general method to compute the sampling variability for standardized mean difference measures.} Usually, the effect size sampling variability depends mainly on the sample size that determines the weight assigned during the meta-analytic estimation.
 
-\hypertarget{equal-vs-fixed-vs-random-effects-model}{%
-\subsubsection{Equal vs fixed vs random-effects model}\label{equal-vs-fixed-vs-random-effects-model}}
+\subsubsection{Equal vs fixed vs random-effects model}\label{equal-vs-fixed-vs-random-effects-model}
 
 The core of a meta-analysis is combining the results of multiple studies giving more weight to studies that provide a more precise effect estimation. We can find essentially three meta-analysis models: the equal-effects, the fixed-effects, and the random-effects model (Hedges \& Vevea, 1998; Laird \& Mosteller, 1990). The \emph{equal-effects} model assumes that each study included in the meta-analysis is a more or less precise estimation of the true underlying effect (\(\theta\)). In other terms, we are assuming that there is no variability (i.e., heterogeneity) among true effect sizes. On the other side, suppose some study-level characteristics (e.g., participants' age, sex, or socioeconomic status) or the experimental paradigm (e.g., type of memory task or difficulty) could impact the treatment effect. In this case, we have true variability (i.e., heterogeneity) among studies. The \emph{random-effects} model assumes a distribution of real effects with mean \(\mu_{\theta}\) and variance \(\tau^{2}\) thus estimating the heterogeneity. Finally, the \emph{fixed-effects} model estimate the average effect of the included pool of studies ignoring the presence of heterogeneity. While the distinction between the equal and fixed-effects model is theoretical, the estimated model is the exactly the same\footnote{See \href{https://wviechtb.github.io/metafor/reference/misc-models.html}{wviechtb.github.io/metafor/reference/misc-models.html} for a detailed explanation}. The \emph{random-effects} model assumes and estimates heterogeneity among effect sizes leading to different model parameters. From an inferential point of view, the \emph{random-effects} model provides unconditional inference to the population of effect sizes while the \emph{fixed-effects} model estimates the average effect of the selected studies and not population-level parameters. The \emph{equal-effects} model assumes a single true population effect to be estimated. Figure \ref{fig:img-equal-vs-random} depicts the theoretical distinction between the equal and random-effects model. In the presence of heterogeneity, we can include moderators (e.g., the type of experimental setup) into a meta-regression model to explain the effect size heterogeneity. An interesting proposal to combine evidence from these different models into a single analysis is called Bayesian model-averaged meta-analysis (Berkhout, Haaf, Gronau, Heck, \& Wagenmakers, 2023; Gronau, Heck, Berkhout, Haaf, \& Wagenmakers, 2021). However, this model is beyond the scope of the tutorial.
 
@@ -297,11 +303,9 @@ The core of a meta-analysis is combining the results of multiple studies giving 
 
 \normalsize
 
-\hypertarget{simulation}{%
-\section{Simulation}\label{simulation}}
+\section{Simulation}\label{simulation}
 
-\hypertarget{monte-carlo-simulations}{%
-\subsection{Monte Carlo simulations}\label{monte-carlo-simulations}}
+\subsection{Monte Carlo simulations}\label{monte-carlo-simulations}
 
 The Monte Carlo methods are controlled experiments (Gentle, 2009). Given a set of fixed parameters, probability distributions, and the possibility of generating random numbers, it is possible to simulate the behavior of an empirical system. Monte Carlo simulations are used for statistical and mathematical problems that cannot be solved analytically.
 
@@ -351,8 +355,7 @@ Using the method, we are estimating via simulation the standard deviation of the
 
 The standard error estimated solving analytically is 0.26 and using the Monte Carlo simulation we arrive at the same result (i.e., 0.26).
 
-\hypertarget{simulation-setup}{%
-\subsection{Simulation setup}\label{simulation-setup}}
+\subsection{Simulation setup}\label{simulation-setup}
 
 This tutorial uses several R packages for the simulations, meta-analysis fitting, and figures/tables. For the data manipulation, we used the \emph{tidyverse} (Wickham, 2023) package. For the models fitting we used the \emph{metafor} (Viechtbauer, 2010) package. For figures and tables the \emph{ggplot2} (Wickham et al., 2023) or the \texttt{metafor::forest()} function, \emph{kableExtra} (Zhu, 2021) and \emph{papaja} (Aust \& Barth, 2022) packages. We set the \texttt{seed} for reproducibility of the simulation environment.
 
@@ -438,7 +441,7 @@ The simulation approach can be easily extended calculating a standardized effect
 \NormalTok{  yi }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{mean}\NormalTok{(yt) }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(yc))}
   
   \CommentTok{\# sampling variance}
-\NormalTok{  vi }\OtherTok{\textless{}{-}} \FunctionTok{var}\NormalTok{(yt)}\SpecialCharTok{/}\NormalTok{nt }\SpecialCharTok{+} \FunctionTok{var}\NormalTok{(yt)}\SpecialCharTok{/}\NormalTok{nc}
+\NormalTok{  vi }\OtherTok{\textless{}{-}} \FunctionTok{var}\NormalTok{(yt)}\SpecialCharTok{/}\NormalTok{nt }\SpecialCharTok{+} \FunctionTok{var}\NormalTok{(yc)}\SpecialCharTok{/}\NormalTok{nc}
   
   \ControlFlowTok{if}\NormalTok{(}\SpecialCharTok{!}\NormalTok{aggregate)\{}
     \CommentTok{\# return raw data}
@@ -579,8 +582,7 @@ $\epsilon_i$ & \texttt{} & Sampling error for the study i\\
 
 \normalsize
 
-\hypertarget{equal-effects-model}{%
-\subsection{Equal-effects model}\label{equal-effects-model}}
+\subsection{Equal-effects model}\label{equal-effects-model}
 
 The most basic model to simulate is the \emph{equal-effects model} (EE). As reported in the previous sections, the \emph{equal-effects model} assumes the presence of a single true effect (\(\theta\)) and the observed variability is caused by each effect size being a more or less imprecise estimation of the true effect. In other words, the only source of variability is the sampling variability that depends on the variance of the primary studies (i.e., the sample size). Equations \eqref{eq:equal-effects-model1} and \eqref{eq:equal-effects-model2} formalize the \emph{equal-effects} model.
 
@@ -630,7 +632,7 @@ We are using the \(\theta\) parameter to generate random data using the \texttt{
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-overall & 0.347 (SE = 0.056) & $[0.237, 0.456]$ & 6.223 & < 0.001\\
+overall & 0.339 (SE = 0.057) & $[0.228, 0.451]$ & 5.959 & < 0.001\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 30$}\\
 \end{tabular}
@@ -653,8 +655,7 @@ Increasing the sample size for each study will increase the estimation precision
 
 \normalsize
 
-\hypertarget{re-model}{%
-\subsection{Random-effects model}\label{re-model}}
+\subsection{Random-effects model}\label{re-model}
 
 The \emph{random-effects model} (RE) can be considered an extension of the \emph{equal-effects model}. The \emph{equal-effects model} assumes that the real effect is a single value. The random-effects model relaxes this assumption allowing the true effect size to vary across studies. For example, the difference between groups we are simulating could be influenced by the type of experiment or the participants' age.
 Now \(\theta\) is no longer a single value but a distribution of values. Due to the effect size being a distribution, we need to estimate both the mean and the variance. The parameter \(\mu_{\theta}\) is mean of the distribution, interpreted as the average effect size across different true effect sizes and \(\tau^{2}\) is the variance of the distribution interpreted as variability or heterogeneity of effect sizes. In practical terms, we now have two sources of variability: \(\tau^{2}\), which express the real difference among effect sizes, and \(\sigma_{\epsilon_i}^{2}\) which is the known sampling variance of each study as in the \emph{equal-effects model}. We can easily extend Equation \eqref{eq:equal-effects-model1} with Equations \eqref{eq:random-effects-model1}, \eqref{eq:random-effects-model2} and \eqref{eq:random-effects-model3}.
@@ -721,11 +722,11 @@ Then we can fit the \emph{random-effects} meta-analysis model with the \texttt{r
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-overall & 0.394 (SE = 0.110) & $[0.179, 0.609]$ & 3.596 & < 0.001\\
+overall & 0.387 (SE = 0.107) & $[0.177, 0.597]$ & 3.616 & < 0.001\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 30$}\\
-\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.262$ ($SE = 0.095$)}\\
-\multicolumn{5}{l}{\textsuperscript{} $I^2 = 73.480\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.246$ ($SE = 0.090$)}\\
+\multicolumn{5}{l}{\textsuperscript{} $I^2 = 71.925\%$}\\
 \end{tabular}
 \end{table}
 
@@ -810,18 +811,17 @@ Table \ref{tab:res-random-effects-i2} depicts the results of the random-effects 
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-overall & 0.300 (SE = 0.071) & $[0.160, 0.440]$ & 4.201 & < 0.001\\
+overall & 0.305 (SE = 0.072) & $[0.164, 0.447]$ & 4.226 & < 0.001\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 30$}\\
-\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.087$ ($SE = 0.040$)}\\
-\multicolumn{5}{l}{\textsuperscript{} $I^2 = 57.904\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.091$ ($SE = 0.041$)}\\
+\multicolumn{5}{l}{\textsuperscript{} $I^2 = 58.479\%$}\\
 \end{tabular}
 \end{table}
 
 \normalsize
 
-\hypertarget{metareg}{%
-\subsection{Meta-regression}\label{metareg}}
+\subsection{Meta-regression}\label{metareg}
 
 From a linear regression perspective, both the EE and the RE models can be seen as \emph{intercept-only} models where only the mean (i.e., the linear regression intercept) is estimated. As reported in the meta-analysis introduction, the between-study heterogeneity usually represents the true variability of the effect due to differences among primary studies. A natural extension of the \emph{intercept-only} analysis is a model that includes variables (i.e., \emph{moderators}) that could explain the observed heterogeneity among effect sizes. For example, a group of studies could use a particular memory task where the expected effect is higher than another. In this way, considering the type of task will explain part of the observed heterogeneity as in standard regression models. Figures \ref{fig:img-metaregression-bin} and \ref{fig:img-metaregression-num} depict a random-effects meta-regression model for a categorical and numerical predictor.
 
@@ -852,8 +852,7 @@ heterogeneity. The rest of the Figure follows the same logic as Figure \ref{fig:
 
 \normalsize
 
-\hypertarget{meta-regression-with-a-categorical-moderator}{%
-\subsubsection{Meta-regression with a categorical moderator}\label{meta-regression-with-a-categorical-moderator}}
+\subsubsection{Meta-regression with a categorical moderator}\label{meta-regression-with-a-categorical-moderator}
 
 A common example of meta-regression is by including a categorical predictor, including information about study-level features. In our example, a group of studies uses an online memory task while others use a standard lab-based task. The Equation \eqref{eq:random-effects-model1} can be easily extended for a meta-regression model by including a variable encoding the type of task (online vs.~lab-based) and the expected difference between the two levels of the moderator (i.e., the \emph{lab vs.~online effect}). In regression terms (see equation \eqref{eq:meta-regression}), we could use a dummy variable (\(X_{1}\)) that takes the value of 0 for the \emph{lab-based task} (\emph{L}) and a value of 1 for an \emph{online task} (\emph{O})\footnote{The \emph{dummy coding} (also known as treatment coding) is the default in R and \texttt{metafor} but other coding schemes could be used (see Schad, Vasishth, Hohenstein, \& Kliegl, 2020 for an overview of contrast coding schemes). As in standard linear regression, the contrast coding of categorical factors or the presence/absence of the intercept influences the interpretation of estimated model parameters and omnibus meta-regression tests (see \url{https://www.metafor-project.org/doku.php/tips:models_with_or_without_intercept} for a detailed discussion)} . Now we fix \(\beta_{1}\) to be the \emph{lab vs.~online effect} (i.e., the expected mean difference between the two groups of studies) and the product between \(\beta_{1}X_{1_i}\) will consider the \emph{lab vs.~online effect}. Crucially, despite \(\tau^{2}\) is still the heterogeneity between effect sizes, now we need to fix \(\tau^{2}\) considering that we included a moderator. In other terms, \(\delta_i \sim \mathcal{N}(0, \tau_{r}^{2})\) where \(\tau^2_r\) is the residual heterogeneity after including the moderator. We can describe our model using equation \eqref{eq:meta-regression-equations} according to the value of \(X_{1_i}\) (L = lab-based experiments, O = online experiments).
 
@@ -910,20 +909,19 @@ Now we can fit the meta-regression model with the \texttt{rma} function as for t
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-intercept & 0.038 (SE = 0.101) & $[-0.161, 0.236]$ & 0.372 & 0.710\\
-exponline & 0.323 (SE = 0.143) & $[0.043, 0.602]$ & 2.263 & 0.024\\
+intercept & 0.043 (SE = 0.103) & $[-0.158, 0.244]$ & 0.42 & 0.674\\
+exponline & 0.323 (SE = 0.144) & $[0.040, 0.606]$ & 2.24 & 0.025\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 30$}\\
-\multicolumn{5}{l}{\textsuperscript{} $\tau^2_r = 0.087$ ($SE = 0.041$)}\\
-\multicolumn{5}{l}{\textsuperscript{} $R^2 = 20.659\%$}\\
-\multicolumn{5}{l}{\textsuperscript{} $I^2 = 57.741\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $\tau^2_r = 0.091$ ($SE = 0.042$)}\\
+\multicolumn{5}{l}{\textsuperscript{} $R^2 = 19.824\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $I^2 = 58.323\%$}\\
 \end{tabular}
 \end{table}
 
 \normalsize
 
-\hypertarget{meta-regression-with-a-numerical-moderator}{%
-\subsubsection{Meta-regression with a numerical moderator}\label{meta-regression-with-a-numerical-moderator}}
+\subsubsection{Meta-regression with a numerical moderator}\label{meta-regression-with-a-numerical-moderator}
 
 The same approach can be used for a continuous predictor. For example, we can simulate that the average participant's age within each study could explain part of the observed heterogeneity. Now the \(X_1\) is a continuous predictor representing the average age for each study and \(\beta_1\) is the effect size increase for a unit increase (i.e., 1 year) of average age. Sometimes guessing a plausible \(\beta_1\) value with a continuous predictor is not straightforward. A first strategy could be to use values estimated from the literature. Another approach consists in setting up the model and simulating several expected \(y_i\) and calculating the range of simulated values. A third possibility is fixing the proportion of explained heterogeneity calculating the \(\beta_1\) value accordingly. As in standard regression analysis, we can use the \(R^2\) statistic to describe the amount of heterogeneity explained by the included moderators. Equation \eqref{eq:rsquared} reports how to calculate the \(R^2\) for a meta-regression model. The \(\tau^2_{r}\) is the residual heterogeneity after considering the moderators and \(\tau^2_{f}\) is the heterogeneity estimated without considering the moderators. In the next sections, we will present an example of the simulation-based and the \(R^2\) based approaches.
 
@@ -936,8 +934,7 @@ R^2 = 1 - \frac{\tau^2_{r}}{\tau^2_{f}}
 
 In terms of regression parameters now the intercept (\(\beta_0\)) is no longer the overall effect or the average of one category as in the previous example but the estimated value for a specific \(X_1\) thus for a specific age. If \(X_1\) is a variable representing the average age for each study, then the \(\beta_0\) is the average effect size when the age is zero. Depending on the moderator, the intercept is interpreted in different ways. For example, with the age, the intercept has no empirical meaning given that no studies could have a participant average age of zero. A strategy could be to mean-center the age (i.e., subtracting from each study age the average age across the study). Now the intercept is still the average effect size when the age is zero but now zero is the average age. Importantly, the contrast coding for categorical predictors or centering numerical variables does not affect the overall model but only parameters values and interpretation.
 
-\hypertarget{assessing-the-impact-of-beta_1}{%
-\paragraph{\texorpdfstring{Assessing the impact of \(\beta_1\)}{Assessing the impact of \textbackslash beta\_1}}\label{assessing-the-impact-of-beta_1}}
+\paragraph{\texorpdfstring{Assessing the impact of \(\beta_1\)}{Assessing the impact of \textbackslash beta\_1}}\label{assessing-the-impact-of-beta_1}
 
 As reported in the previous section, a strategy to guess plausible values for \(\beta_{1}\) is by simulating several expected \(y_{i}\) given the meta-regression equation and summarizing or plotting the effect size range. The range of simulated \(y_{i}\) values are also affected by the simulated age values across studies. However, it is probably more intuitive to guess a plausible range of moderator values compared to the \(\beta_{1}\) value. In this specific example, if all studies target a specific population (e.g., adults below 50 years), the expected average age range can be easily simulated. In our case, we simulated \(k\) average age values from a uniform distribution \(\text{age}_{i} \sim U\left( 20,40 \right)\). Then we can plot the distribution of \(y_{i}\) values to check the plausibility of simulated values. As shown in Figure \ref{fig:plot-meta-reg-plausible-implausible}, with the same range for the moderator, a \(\beta_{1} = 0.1\) gives a plausible effect sizes range while a \(\beta_{1} = 0.7\) predicts very extreme values.
 
@@ -983,8 +980,7 @@ As reported in the previous section, a strategy to guess plausible values for \(
 
 \normalsize
 
-\hypertarget{simulating-using-r2}{%
-\paragraph{\texorpdfstring{Simulating using \(R^2\)}{Simulating using R\^{}2}}\label{simulating-using-r2}}
+\paragraph{\texorpdfstring{Simulating using \(R^2\)}{Simulating using R\^{}2}}\label{simulating-using-r2}
 
 A more intuitive way to simulate a continuous predictor is fixing the desired \(R^{2}\) value and finding the coefficient that produces the desired value. This approach has been implemented by Lopez-Lopez and colleagues (2014). We can use Equation \eqref{eq:beta-from-r21} and \eqref{eq:beta-from-r22} to find the \(\beta_{1}\) value that is associated with a certain \(R^{2}\).
 
@@ -1043,13 +1039,13 @@ Now we can simulate the regression model using \(\sqrt{\beta^2_1}\) as coefficie
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-intercept & 0.339 (SE = 0.051) & $[0.239, 0.439]$ & 6.643 & < 0.001\\
-age0 & 0.168 (SE = 0.051) & $[0.067, 0.268]$ & 3.272 & 0.001\\
+intercept & 0.340 (SE = 0.051) & $[0.240, 0.439]$ & 6.680 & < 0.001\\
+age0 & 0.168 (SE = 0.051) & $[0.068, 0.269]$ & 3.296 & < 0.001\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 100$}\\
-\multicolumn{5}{l}{\textsuperscript{} $\tau^2_r = 0.197$ ($SE = 0.037$)}\\
-\multicolumn{5}{l}{\textsuperscript{} $R^2 = 11.029\%$}\\
-\multicolumn{5}{l}{\textsuperscript{} $I^2 = 76.611\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $\tau^2_r = 0.194$ ($SE = 0.037$)}\\
+\multicolumn{5}{l}{\textsuperscript{} $R^2 = 11.422\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $I^2 = 75.417\%$}\\
 \end{tabular}
 \end{table}
 
@@ -1068,8 +1064,7 @@ age0 & 0.168 (SE = 0.051) & $[0.067, 0.268]$ & 3.272 & 0.001\\
 
 \normalsize
 
-\hypertarget{power-analysis}{%
-\section{Power Analysis}\label{power-analysis}}
+\section{Power Analysis}\label{power-analysis}
 
 The previous simulation examples can be easily implemented for multiple purposes. For example, we can use different effect sizes and variance estimators when using the \texttt{sim\_study()} function to check the impact on the fitted meta-analysis model. However, one of the most critical applications is estimating the power of a specific statistical model. One of the purposes of power analysis by simulations is to estimate the required number of studies to detect an hypothetical effect size when planning a meta-analysis. At the same time, the meta-analysis that we presented (\emph{two-level} equal or random-effects model) can be considered as a multi-lab (e.g., Klein et al., 2018) study where experiments are planned and not collected from the literature. We can use the same simulation approach to optimize the number of participants and studies when planning a multi-lab project.
 
@@ -1210,8 +1205,7 @@ k & \multicolumn{1}{c}{$\Delta$} & \multicolumn{1}{c}{$\tau^2$} & \multicolumn{1
 
 \normalsize
 
-\hypertarget{conclusions}{%
-\section{Conclusions}\label{conclusions}}
+\section{Conclusions}\label{conclusions}
 
 The present work introduced the basic concepts of the meta-analysis regarding equal-effects, random-effects and meta-regression models with a simulation-based approach. We believe the presented examples are useful to implement alternative or more complex models. For example, the \texttt{sim\_study()} function can be easily modified to simulate another effect sizes index, such as correlations or odds ratios. In addition, more complex models, such as \emph{multivariate} or \emph{multilevel} models, can be simulated following a similar approach (see the supplementary materials). The \emph{multilevel} (e.g., \emph{three-level}) model estimates another heterogeneity component representing the variability of multiple independent effect sizes within the same study. Similarly, the \emph{multivariate} model includes the correlation between multiple outcomes and the correlation between sampling errors.
 
@@ -1221,159 +1215,153 @@ In conclusion, data simulation is a very powerful tool for each step of a data a
 
 \newpage
 
-\hypertarget{acknowledgments}{%
-\subsubsection*{Acknowledgments}\label{acknowledgments}}
+\subsubsection*{Acknowledgments}\label{acknowledgments}
 \addcontentsline{toc}{subsubsection}{Acknowledgments}
 
 We thank the \emph{\href{https://stat.ethz.ch/mailman/listinfo/r-sig-meta-analysis}{R-sig-meta-analysis}} mailing-list. Their suggestions and clarifications significantly improved the simulations approach and the R code.
 
-\hypertarget{conflicts-of-interest}{%
-\subsubsection*{Conflicts of Interest}\label{conflicts-of-interest}}
+\subsubsection*{Conflicts of Interest}\label{conflicts-of-interest}
 \addcontentsline{toc}{subsubsection}{Conflicts of Interest}
 
 The author(s) declare that there were no conflicts of interest with respect to the authorship or the publication of this article.
 
-\hypertarget{data-materials-and-online-resources}{%
-\subsubsection*{Data, materials, and online resources}\label{data-materials-and-online-resources}}
+\subsubsection*{Data, materials, and online resources}\label{data-materials-and-online-resources}
 \addcontentsline{toc}{subsubsection}{Data, materials, and online resources}
 
 The code to reproduce simulations, figures and tables can be found on Open Science Framework (\url{https://osf.io/54djn/}) and Github (\url{https://github.com/shared-research/simulating-meta-analysis}).
 
-\hypertarget{supplemental-material}{%
-\subsubsection*{Supplemental Material}\label{supplemental-material}}
+\subsubsection*{Supplemental Material}\label{supplemental-material}
 \addcontentsline{toc}{subsubsection}{Supplemental Material}
 
 The supplementary materials can be also found on the Open Science Framework repository (\url{https://osf.io/54djn/}) and Github (\url{https://github.com/shared-research/simulating-meta-analysis}).
 
-\hypertarget{prior-versions}{%
-\subsubsection*{Prior versions}\label{prior-versions}}
+\subsubsection*{Prior versions}\label{prior-versions}
 \addcontentsline{toc}{subsubsection}{Prior versions}
 
 The manuscript preprint has been uploaded on PsyArXiv \url{https://psyarxiv.com/br6vy/}
 
 \newpage
 
-\hypertarget{references}{%
-\section*{References}\label{references}}
+\section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 
-\hypertarget{refs}{}
+\phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-R-papaja}{}}%
+\bibitem[\citeproctext]{ref-R-papaja}
 Aust, F., \& Barth, M. (2022). \emph{Papaja: Prepare american psychological association journal articles with r markdown}. Retrieved from \url{https://github.com/crsh/papaja}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Berkhout2023-fj}{}}%
+\bibitem[\citeproctext]{ref-Berkhout2023-fj}
 Berkhout, S. W., Haaf, J. M., Gronau, Q. F., Heck, D. W., \& Wagenmakers, E.-J. (2023). A tutorial on bayesian model-averaged meta-analysis in {JASP}. \emph{Behav. Res. Methods}. \url{https://doi.org/10.3758/s13428-023-02093-6}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Blazquez-Rincon2023-kp}{}}%
+\bibitem[\citeproctext]{ref-Blazquez-Rincon2023-kp}
 Blázquez-Rincón, D., Sánchez-Meca, J., Botella, J., \& Suero, M. (2023). Heterogeneity estimation in meta-analysis of standardized mean differences when the distribution of random effects departs from normal: A monte carlo simulation study. \emph{BMC Med. Res. Methodol.}, \emph{23}(1), 19. \url{https://doi.org/10.1186/s12874-022-01809-0}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Borenstein2009-mo}{}}%
+\bibitem[\citeproctext]{ref-Borenstein2009-mo}
 Borenstein, M., Hedges, L. V., Higgins, J. P. T., \& Rothstein, H. R. (2009). \emph{Introduction to {Meta-Analysis}}. \url{https://doi.org/10.1002/9780470743386}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Cohen1988-ad}{}}%
+\bibitem[\citeproctext]{ref-Cohen1988-ad}
 Cohen, J. (1988). \emph{Statistical power analysis for the behavioral sciences} (2nd ed.). Routledge. \url{https://doi.org/10.4324/9780203771587}
 
-\leavevmode\vadjust pre{\hypertarget{ref-DeBruine2021-id}{}}%
+\bibitem[\citeproctext]{ref-DeBruine2021-id}
 DeBruine, L. M., \& Barr, D. J. (2021). Understanding {Mixed-Effects} models through data simulation. \emph{Advances in Methods and Practices in Psychological Science}, \emph{4}(1), 2515245920965119. \url{https://doi.org/10.1177/2515245920965119}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Gelman2006-pc}{}}%
+\bibitem[\citeproctext]{ref-Gelman2006-pc}
 Gelman, A., \& Hill, J. (2006). \emph{Data analysis using regression and {Multilevel/Hierarchical} models}. Cambridge University Press. \url{https://doi.org/10.1017/CBO9780511790942}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Gelman2020-tg}{}}%
+\bibitem[\citeproctext]{ref-Gelman2020-tg}
 Gelman, A., Hill, J., \& Vehtari, A. (2020). \emph{Regression and other stories}. Cambridge University Press. \url{https://doi.org/10.1017/9781139161879}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Gentle2009-cj}{}}%
+\bibitem[\citeproctext]{ref-Gentle2009-cj}
 Gentle, J. E. (2009). Monte carlo methods for statistical inference. In J. E. Gentle (Ed.), \emph{Computational statistics} (pp. 417--433). New York, NY: Springer New York. \url{https://doi.org/10.1007/978-0-387-98144-4/_11}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Gronau2021-do}{}}%
+\bibitem[\citeproctext]{ref-Gronau2021-do}
 Gronau, Q. F., Heck, D. W., Berkhout, S. W., Haaf, J. M., \& Wagenmakers, E.-J. (2021). A primer on bayesian model-averaged meta-analysis. \emph{Adv. Methods Pract. Psychol. Sci.}, \emph{4}(3), 251524592110312. \url{https://doi.org/10.1177/25152459211031256}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Harrer2019-rl}{}}%
+\bibitem[\citeproctext]{ref-Harrer2019-rl}
 Harrer, M., Cuijpers, P., \& Ebert, D. (2019). \emph{Doing {Meta-Analysis} in {R}}. \url{https://doi.org/10.5281/zenodo.2551803}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Harrer2021-bz}{}}%
+\bibitem[\citeproctext]{ref-Harrer2021-bz}
 Harrer, M., Cuijpers, P., Furukawa, T. A., \& Ebert, D. D. (2021). \emph{Doing {Meta-Analysis} with r: A {Hands-On} guide}. CRC Press.
 
-\leavevmode\vadjust pre{\hypertarget{ref-Hedges1981-za}{}}%
+\bibitem[\citeproctext]{ref-Hedges1981-za}
 Hedges, L. V. (1981). Distribution theory for glass's estimator of effect size and related estimators. \emph{J. Educ. Behav. Stat.}, \emph{6}(2), 107--128. \url{https://doi.org/10.3102/10769986006002107}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Hedges1989-ip}{}}%
+\bibitem[\citeproctext]{ref-Hedges1989-ip}
 Hedges, L. V. (1989). An unbiased correction for sampling error in validity generalization studies. \emph{J. Appl. Psychol.}, \emph{74}(3), 469--477. \url{https://doi.org/10.1037/0021-9010.74.3.469}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Hedges1998-uo}{}}%
+\bibitem[\citeproctext]{ref-Hedges1998-uo}
 Hedges, L. V., \& Vevea, J. L. (1998). Fixed- and random-effects models in meta-analysis. \emph{Psychol. Methods}, \emph{3}(4), 486--504. \url{https://doi.org/10.1037/1082-989X.3.4.486}
 
-\leavevmode\vadjust pre{\hypertarget{ref-van-den-Heuvel2020-rv}{}}%
+\bibitem[\citeproctext]{ref-van-den-Heuvel2020-rv}
 Heuvel, E. R. van den, Almalik, O., \& Zhan, Z. (2020). \emph{Simulation models for aggregated data meta-analysis: Evaluation of pooling effect sizes and publication biases}. Retrieved from \url{https://arxiv.org/abs/2009.06305}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Higgins2002-fh}{}}%
+\bibitem[\citeproctext]{ref-Higgins2002-fh}
 Higgins, J. P. T., \& Thompson, S. G. (2002). Quantifying heterogeneity in a meta-analysis. \emph{Stat. Med.}, \emph{21}(11), 1539--1558. \url{https://doi.org/10.1002/sim.1186}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Ingalls2011-xt}{}}%
+\bibitem[\citeproctext]{ref-Ingalls2011-xt}
 Ingalls, R. G. (2011). Introduction to simulation. \emph{Proceedings of the 2011 Winter Simulation Conference ({WSC})}, 1374--1388. ieeexplore.ieee.org. \url{https://doi.org/10.1109/WSC.2011.6147858}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Jackson2017-dv}{}}%
+\bibitem[\citeproctext]{ref-Jackson2017-dv}
 Jackson, D., \& Turner, R. (2017). Power analysis for random-effects meta-analysis. \emph{Res. Synth. Methods}, \emph{8}(3), 290--302. \url{https://doi.org/10.1002/jrsm.1240}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Klein2018-he}{}}%
+\bibitem[\citeproctext]{ref-Klein2018-he}
 Klein, R. A., Vianello, M., Hasselman, F., Adams, B. G., Adams, R. B., Jr, Alper, S., \ldots{} Nosek, B. A. (2018). Many labs 2: Investigating variation in replicability across samples and settings. \emph{Adv. Methods Pract. Psychol. Sci.}, \emph{1}(4), 443--490. \url{https://doi.org/10.1177/2515245918810225}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Knapp2003-qx}{}}%
+\bibitem[\citeproctext]{ref-Knapp2003-qx}
 Knapp, G., \& Hartung, J. (2003). Improved tests for a random effects meta-regression with a single covariate. \emph{Stat. Med.}, \emph{22}(17), 2693--2710. \url{https://doi.org/10.1002/sim.1482}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Laird1990-ro}{}}%
+\bibitem[\citeproctext]{ref-Laird1990-ro}
 Laird, N. M., \& Mosteller, F. (1990). Some statistical methods for combining experimental results. \emph{Int. J. Technol. Assess. Health Care}, \emph{6}(1), 5--30. \url{https://doi.org/10.1017/s0266462300008916}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Lakens2013-eq}{}}%
+\bibitem[\citeproctext]{ref-Lakens2013-eq}
 Lakens, D. (2013). Calculating and reporting effect sizes to facilitate cumulative science: A practical primer for t-tests and {ANOVAs}. \emph{Front. Psychol.}, \emph{4}, 863. \url{https://doi.org/10.3389/fpsyg.2013.00863}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Lipsey2001-vp}{}}%
+\bibitem[\citeproctext]{ref-Lipsey2001-vp}
 Lipsey, M. W., \& Wilson, D. B. (2001). Practical meta-analysis. \emph{Applied Social Research Methods Series; Vol 49.}, \emph{247}.
 
-\leavevmode\vadjust pre{\hypertarget{ref-Lopez-Lopez2014-it}{}}%
+\bibitem[\citeproctext]{ref-Lopez-Lopez2014-it}
 López-López, J. A., Marı́n-Martı́nez, F., Sánchez-Meca, J., Van den Noortgate, W., \& Viechtbauer, W. (2014). Estimation of the predictive power of the model in mixed-effects meta-regression: A simulation study. \emph{Br. J. Math. Stat. Psychol.}, \emph{67}(1), 30--48. \url{https://doi.org/10.1111/bmsp.12002}
 
-\leavevmode\vadjust pre{\hypertarget{ref-r-lang}{}}%
+\bibitem[\citeproctext]{ref-r-lang}
 R Core Team. (2022). \emph{R: A language and environment for statistical computing}. Vienna, Austria: R Foundation for Statistical Computing.
 
-\leavevmode\vadjust pre{\hypertarget{ref-Rubio-Aparicio2018-pd}{}}%
+\bibitem[\citeproctext]{ref-Rubio-Aparicio2018-pd}
 Rubio-Aparicio, M., López-López, J. A., Sánchez-Meca, J., Marín-Martínez, F., Viechtbauer, W., \& Van den Noortgate, W. (2018). Estimation of an overall standardized mean difference in random‐effects meta‐analysis if the distribution of random effects departs from normal. \emph{Res. Synth. Methods}, \emph{9}(3), 489--503. \url{https://doi.org/10.1002/jrsm.1312}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Schad2020-ht}{}}%
+\bibitem[\citeproctext]{ref-Schad2020-ht}
 Schad, D. J., Vasishth, S., Hohenstein, S., \& Kliegl, R. (2020). How to capitalize on a priori contrasts in linear (mixed) models: A tutorial. \emph{J. Mem. Lang.}, \emph{110}, 104038. \url{https://doi.org/10.1016/j.jml.2019.104038}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Schmid2022-xe}{}}%
+\bibitem[\citeproctext]{ref-Schmid2022-xe}
 Schmid, C. H., Stijnen, T., \& White, I. R. (2022). \emph{Handbook of {Meta-Analysis}}. Taylor \& Francis Limited.
 
-\leavevmode\vadjust pre{\hypertarget{ref-Takkouche1999-sv}{}}%
+\bibitem[\citeproctext]{ref-Takkouche1999-sv}
 Takkouche, B., Cadarso-Suárez, C., \& Spiegelman, D. (1999). Evaluation of old and new tests of heterogeneity in epidemiologic meta-analysis. \emph{Am. J. Epidemiol.}, \emph{150}(2), 206--215. \url{https://doi.org/10.1093/oxfordjournals.aje.a009981}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Takkouche2013-nd}{}}%
+\bibitem[\citeproctext]{ref-Takkouche2013-nd}
 Takkouche, B., Khudyakov, P., Costa-Bouzas, J., \& Spiegelman, D. (2013). Confidence intervals for heterogeneity measures in meta-analysis. \emph{Am. J. Epidemiol.}, \emph{178}(6), 993--1004. \url{https://doi.org/10.1093/aje/kwt060}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Van_Erp2017-cf}{}}%
+\bibitem[\citeproctext]{ref-Van_Erp2017-cf}
 Van Erp, S., Verhagen, J., Grasman, R. P. P. P., \& Wagenmakers, E.-J. (2017). Estimates of between-study heterogeneity for 705 meta-analyses reported in \emph{psychological bulletin} from 1990--2013. \emph{Journal of Open Psychology Data}, \emph{5}(1), 4. \url{https://doi.org/10.5334/jopd.33}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Viechtbauer2005-yh}{}}%
+\bibitem[\citeproctext]{ref-Viechtbauer2005-yh}
 Viechtbauer, W. (2005). Bias and efficiency of meta-analytic variance estimators in the random-effects model. \emph{J. Educ. Behav. Stat.}, \emph{30}(3), 261--293. \url{https://doi.org/10.3102/10769986030003261}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Viechtbauer2007-tq}{}}%
+\bibitem[\citeproctext]{ref-Viechtbauer2007-tq}
 Viechtbauer, W. (2007). Approximate confidence intervals for standardized effect sizes in the two-independent and two-dependent samples design. \emph{J. Educ. Behav. Stat.}, \emph{32}(1), 39--60. \url{https://doi.org/10.3102/1076998606298034}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Viechtbauer2010-xz}{}}%
+\bibitem[\citeproctext]{ref-Viechtbauer2010-xz}
 Viechtbauer, W. (2010). Conducting meta-analyses in {R} with the {metafor} package. \url{https://doi.org/10.18637/jss.v036.i03}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Viechtbauer2022-rz}{}}%
+\bibitem[\citeproctext]{ref-Viechtbauer2022-rz}
 Viechtbauer, W., \& López-López, J. A. (2022). Location-scale models for meta-analysis. \emph{Res. Synth. Methods}, \emph{13}(6), 697--715. \url{https://doi.org/10.1002/jrsm.1562}
 
-\leavevmode\vadjust pre{\hypertarget{ref-R-tidyverse}{}}%
+\bibitem[\citeproctext]{ref-R-tidyverse}
 Wickham, H. (2023). \emph{Tidyverse: Easily install and load the tidyverse}. Retrieved from \url{https://CRAN.R-project.org/package=tidyverse}
 
-\leavevmode\vadjust pre{\hypertarget{ref-R-ggplot2}{}}%
+\bibitem[\citeproctext]{ref-R-ggplot2}
 Wickham, H., Chang, W., Henry, L., Pedersen, T. L., Takahashi, K., Wilke, C., \ldots{} Dunnington, D. (2023). \emph{ggplot2: Create elegant data visualisations using the grammar of graphics}. Retrieved from \url{https://CRAN.R-project.org/package=ggplot2}
 
-\leavevmode\vadjust pre{\hypertarget{ref-R-kableExtra}{}}%
+\bibitem[\citeproctext]{ref-R-kableExtra}
 Zhu, H. (2021). \emph{kableExtra: Construct complex table with kable and pipe syntax}. Retrieved from \url{https://CRAN.R-project.org/package=kableExtra}
 
 \end{CSLReferences}
