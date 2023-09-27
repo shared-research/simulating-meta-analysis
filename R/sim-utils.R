@@ -47,9 +47,9 @@ sim_study <- function(es, nt, nc = NULL, aggregate = TRUE){
 #' @export
 #'
 #' @examples
-#' sim <- data.frame(k = 1:10, nt = 30, nc = 30)
-#' sim_studies(sim$k, sim$nt, sim$nc, data = sim)
-#' sim_stud
+#' sim <- data.frame(k = 1:10, es = 0.3, nt = 30, nc = 30)
+#' sim_studies(sim$es, sim$nt, sim$nc, data = sim)
+#' 
 sim_studies <- function(..., data = NULL){
   # ... (dots) are the arguments passed to mapply, with the order required by sim_study
   res <- mapply(sim_study, ..., SIMPLIFY = FALSE)
