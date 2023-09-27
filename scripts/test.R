@@ -54,7 +54,7 @@ mu <- 0.3 # real effect size
 n <- 1e3 # sample size per group, per study
 I2 <- 0.6 # desired I2 value
 
-v <- (n + n)/(n * n) + mu^2/(2 * (n + n - 2)) # typical within study variance
+v <- 1/n + 1/n # typical within study variance
 tau2 <- -((I2*v)/(I2 - 1))
 
 sim <- make_data(k = k, nc = n, nt = n, mu = mu)
@@ -75,7 +75,7 @@ check_sim(fixed = list(theta = theta,
 # Meta-regression with categorical moderator ------------------------------
 
 set.seed(seed)
-k <- 1e4 # the total number of studies
+k <- 1e3 # the total number of studies
 b0 <- 0.1 # intercept, the effect size of the lab-based studies
 b1 <- 0.2 # the difference between the two levels of the moderator
 tau2r <- 0.1 # the residual heterogeneity
@@ -91,10 +91,10 @@ res <- rma(yi, vi, mods = ~exp, method = "REML", data = sim)
 
 check_sim(fixed = list(b0 = b0,
                        b1 = b1,
-                       tau2 = tau2), 
+                       tau2r = tau2r), 
           results = list(b0 = res$b[[1]],
                          b1 = res$b[[2]],
-                         tau2 = res$tau2),
+                         tau2r = res$tau2),
           name = "Meta-regression with categorical predictor")
 
 # Meta-regression with numerical moderator --------------------------------
@@ -124,13 +124,13 @@ check_sim(fixed = list(b0 = b0,
           results = list(b0 = res$b[[1]],
                          b1 = res$b[[2]],
                          tau2r = res$tau2),
-          name = "Meta-regression with numerical predictor"))
+          name = "Meta-regression with numerical predictor")
 
 
 # Meta-regression with numerical predictor, fixing R2 ---------------------
 
 set.seed(seed)
-k <- 5e3 # the number of studies
+k <- 1e3 # the number of studies
 r2 <- 0.2 # the desired r2 value
 tau2 <- 0.3 # the overall tau2
 b0 <- 0.3 # the intercept i.e., average yi when x1 is 0
@@ -157,13 +157,12 @@ check_sim(fixed = list(b0 = b0,
                          b1 = res$b[[2]],
                          tau2r = res$tau2,
                          r2 = res$R2),
-          name = "Meta-regression fixing R2"))
+          name = "Meta-regression fixing R2")
 
 # For the R2 we tried to repeat the simulation and check the
 # distribution of simulated values
 
-nsim <- 1000
-
+nsim <- 1e3
 k <- 100 # the number of studies
 r2 <- 0.2 # the desired r2 value
 tau2 <- 0.3 # the overall tau2
@@ -216,7 +215,7 @@ sim_grid
 
 set.seed(seed)
 i <- 500 # Number of studies (level 3)
-j <- 10 # Number of effect sizes within each study (level 2)
+j <- 5 # Number of effect sizes within each study (level 2)
 tau2 <- 0.3 # heterogeneity between studies
 omega2 <- 0.1 # heterogeneity within studies
 icc <- tau2 / (tau2 + omega2) # real ICC
@@ -247,7 +246,7 @@ check_sim(fixed = list(mu = mu,
           results = list(mu = res$b[[1]],
                          tau2 = res$sigma2[1],
                          omega2 = res$sigma2[2]),
-          name = "3level model"))
+          name = "3level model")
 
 # Multivariate meta-analysis ----------------------------------------------
 
@@ -315,4 +314,4 @@ results <- list(mu1 = res$b[[1]],
                 tau2 = res$tau2,
                 rho = res$rho)
 
-check_sim(fixed, results, name = "Multivariate model"))
+check_sim(fixed, results, name = "Multivariate model")
