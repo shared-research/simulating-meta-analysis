@@ -786,7 +786,7 @@ Table \ref{tab:res-random-effects-i2} depicts the results of the random-effects 
 \NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{30} \CommentTok{\# sample size per group, per study}
 \NormalTok{I2 }\OtherTok{\textless{}{-}} \FloatTok{0.6} \CommentTok{\# desired I2 value}
 
-\NormalTok{v }\OtherTok{\textless{}{-}}\NormalTok{ (n }\SpecialCharTok{+}\NormalTok{ n)}\SpecialCharTok{/}\NormalTok{(n }\SpecialCharTok{*}\NormalTok{ n) }\SpecialCharTok{+}\NormalTok{ mu\_theta}\SpecialCharTok{\^{}}\DecValTok{2}\SpecialCharTok{/}\NormalTok{(}\DecValTok{2} \SpecialCharTok{*}\NormalTok{ (n }\SpecialCharTok{+}\NormalTok{ n }\SpecialCharTok{{-}} \DecValTok{2}\NormalTok{)) }\CommentTok{\# typical within study variance}
+\NormalTok{v }\OtherTok{\textless{}{-}} \DecValTok{1}\SpecialCharTok{/}\NormalTok{n }\SpecialCharTok{+} \DecValTok{1}\SpecialCharTok{/}\NormalTok{n }\CommentTok{\# typical within study variance}
 \NormalTok{tau2 }\OtherTok{\textless{}{-}} \SpecialCharTok{{-}}\NormalTok{((I2}\SpecialCharTok{*}\NormalTok{v)}\SpecialCharTok{/}\NormalTok{(I2 }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{))}
 
 \NormalTok{sim }\OtherTok{\textless{}{-}} \FunctionTok{make\_data}\NormalTok{(}\AttributeTok{k =}\NormalTok{ k, }\AttributeTok{nc =}\NormalTok{ n, }\AttributeTok{nt =}\NormalTok{ n, }\AttributeTok{mu\_theta =}\NormalTok{ mu\_theta)}
@@ -811,11 +811,11 @@ Table \ref{tab:res-random-effects-i2} depicts the results of the random-effects 
 \toprule
  & $\beta$ & 95\% CI & z & p\\
 \midrule
-overall & 0.305 (SE = 0.072) & $[0.164, 0.447]$ & 4.226 & < 0.001\\
+overall & 0.305 (SE = 0.072) & $[0.164, 0.447]$ & 4.239 & < 0.001\\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{} $k = 30$}\\
-\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.091$ ($SE = 0.041$)}\\
-\multicolumn{5}{l}{\textsuperscript{} $I^2 = 58.479\%$}\\
+\multicolumn{5}{l}{\textsuperscript{} $\tau^2 = 0.090$ ($SE = 0.041$)}\\
+\multicolumn{5}{l}{\textsuperscript{} $I^2 = 58.183\%$}\\
 \end{tabular}
 \end{table}
 

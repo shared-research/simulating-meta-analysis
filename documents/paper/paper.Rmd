@@ -514,7 +514,7 @@ mu_theta <- 0.3 # real effect size
 n <- 30 # sample size per group, per study
 I2 <- 0.6 # desired I2 value
 
-v <- (n + n)/(n * n) + mu_theta^2/(2 * (n + n - 2)) # typical within study variance
+v <- 1/n + 1/n # typical within study variance
 tau2 <- -((I2*v)/(I2 - 1))
 
 sim <- make_data(k = k, nc = n, nt = n, mu_theta = mu_theta)
